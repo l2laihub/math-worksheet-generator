@@ -14,7 +14,14 @@
       "Bash(wsl.exe -e pwd:*)",
       "Bash(wsl.exe:*)",
       "Bash(npm run dev:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(cat:*)",
+      "Bash(node tests/test-api.js:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill //F //PID 49888)"
     ],
     "deny": [],
     "ask": []
