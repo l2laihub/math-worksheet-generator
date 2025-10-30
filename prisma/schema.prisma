@@ -1,0 +1,42 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  createdAt   DateTime     @default(now())
+  generations Generation[]
+
+  @@map("users")
+}
+
+model Generation {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  gradeLevel   Int      @map("grade_level")
+  topic        String
+  difficulty   String
+  problemCount Int      @map("problem_count")
+  theme        String
+  worksheetUrl String   @map("worksheet_url")
+  answerKeyUrl String   @map("answer_key_url")
+  status       String   @default("pending")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("generations")
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
