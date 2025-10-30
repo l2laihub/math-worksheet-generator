@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//u/**)",
+      "Bash(npm install:*)",
+      "Bash(tree:*)",
+      "Bash(npm run test:pdf:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

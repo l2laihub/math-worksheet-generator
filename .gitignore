@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+*.log
+
+# Next.js (will be added later)
+.next/
+out/
+build/
+dist/
+
+# Vercel
+.vercel
+
+# Database
+*.db
+*.sqlite
+prisma/migrations/dev.db
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cost validation reports (keep for reference, but can be ignored if sensitive)
+# tests/cost-validation/cost-report-*.json

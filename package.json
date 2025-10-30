@@ -1,0 +1,23 @@
+{
+  "name": "math-worksheet-generator",
+  "version": "0.0.1",
+  "description": "AI-powered math worksheet generator with visual themes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:cost": "node tests/cost-validation/test-generation-cost.js",
+    "test:pdf": "node tests/pdf-poc/generate-sample-worksheet.js"
+  },
+  "keywords": [
+    "education",
+    "math",
+    "worksheets",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "pdfkit": "^0.17.2"
+  }
+}
