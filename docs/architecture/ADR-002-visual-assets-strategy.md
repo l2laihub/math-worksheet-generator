@@ -37,32 +37,30 @@ The Math Worksheet Generator needs visual aids to make worksheets engaging for s
 
 ## Options Considered
 
-### Option A: Pre-Made SVG Assets ✅ RECOMMENDED
+### Option A: OpenMoji SVG Library ✅ RECOMMENDED
 
-**Description**: Curate a library of 50-100 pre-made SVG illustrations organized by theme.
+**Description**: Use OpenMoji open-source emoji/icon library (same as Python implementation's optional mode).
 
 **Architecture**:
 ```
 public/assets/svg/
-  ├── animals/
-  │   ├── cat.svg
-  │   ├── dog.svg
+  ├── food/
+  │   ├── apple.svg (1F34E)
+  │   ├── banana.svg (1F34C)
   │   └── ...
-  ├── space/
-  │   ├── rocket.svg
-  │   ├── planet.svg
+  ├── animals/
+  │   ├── dog.svg (1F436)
+  │   ├── cat.svg (1F431)
   │   └── ...
   └── ...
 
-assets/svg-manifest.json → Maps themes to available SVGs
+assets/svg-manifest.json → Maps themes to OpenMoji Unicode codes
 ```
 
-**Asset Sources**:
-- [unDraw](https://undraw.co/) - Free, customizable, MIT license
-- [Storyset](https://storyset.com/) - Free for commercial use
-- [DrawKit](https://www.drawkit.com/) - Free SVGs
-- [Icons8 Illustrations](https://icons8.com/illustrations) - Free/paid options
-- [Humaaans](https://www.humaaans.com/) - Free, MIT license
+**Asset Source**:
+- [OpenMoji](https://openmoji.org/) - 4000+ open-source emojis/icons (CC BY-SA 4.0)
+- Available as npm package: `openmoji`
+- Same library used in Python Claude skill implementation
 
 **Pros**:
 - ✅ **Zero cost per generation**
@@ -77,14 +75,13 @@ assets/svg-manifest.json → Maps themes to available SVGs
 - ✅ **Can customize** colors programmatically
 
 **Cons**:
-- ⚠️ **Upfront work** (~5 hours to curate)
-- ⚠️ **Limited variety** (50-100 assets vs infinite)
-- ⚠️ **Manual updates** to add new assets
-- ⚠️ **Less dynamic** than AI-generated
+- ⚠️ **Attribution required** (CC BY-SA 4.0 license)
+- ⚠️ **Emoji-style** (not realistic illustrations)
+- ⚠️ **Limited variety** (28-50 objects vs infinite)
 
 **Cost**: $0/generation
-**Implementation Time**: 5 hours
-**Quality**: High (curated)
+**Implementation Time**: 2 hours (download 28 SVGs matching Python version)
+**Quality**: High (professionally designed, consistent style)
 
 ---
 
@@ -166,99 +163,118 @@ Embed images in PDF
 
 ---
 
-## Decision: Option A (Pre-Made SVG Assets)
+## Decision: Option A (OpenMoji SVG Library)
 
 **Rationale**:
 
-### 1. **Cost Effectiveness**
+### 1. **Consistency with Python Implementation**
+- Python Claude skill already uses OpenMoji successfully
+- Proven approach with 28 pre-selected objects
+- Maintains feature parity between skill and web app
+- Same visual style users are familiar with
+
+### 2. **Cost Effectiveness**
 - Zero per-generation cost vs $0.08-0.12 for AI
 - At 1000 worksheets/month: **Save $80-120/month**
-- ROI on 5 hours of curation: Immediate
+- ROI on 2 hours of setup: Immediate
 
-### 2. **Speed & Reliability**
+### 3. **Speed & Reliability**
 - Instant rendering (no API calls)
 - 100% uptime (no external dependencies)
 - Consistent quality
-
-### 3. **Sufficient Variety for MVP**
-- 50-100 assets = 10 per theme
-- Can mix and match
-- Enough variety for launch
+- 4000+ objects available for future expansion
 
 ### 4. **Implementation Speed**
-- Can complete in one work session
+- Can complete in 2 hours (vs 5 hours for curation)
 - No complex API integration
 - No caching or retry logic needed
+- npm package available: `npm install openmoji`
 
-### 5. **Future Flexibility**
+### 5. **Professional Quality**
+- Designed by designers at HfG Schwäbisch Gmünd
+- Consistent style across all objects
+- Kid-friendly and appropriate for education
+- Open-source with active community
+
+### 6. **Future Flexibility**
 - Can add AI generation later
 - Can offer as premium feature
 - Hybrid approach possible
+- Can expand to more OpenMoji objects as needed
 
 ---
 
 ## Implementation Plan
 
-### Asset Curation (5 hours)
+### OpenMoji Asset Setup (2 hours)
 
-**Step 1: Source Assets** (2 hours)
-- Browse unDraw, Storyset, DrawKit
-- Download 60-80 SVG files
-- Focus on: simple, colorful, kid-friendly
+**Step 1: Download OpenMoji SVGs** (30 minutes)
 
-**Themes & Target Count**:
-1. **Animals** (12 assets)
-   - Farm animals: cow, pig, chicken, horse
-   - Pets: dog, cat, rabbit
-   - Zoo: lion, elephant, giraffe, monkey
-   - Sea: fish, whale
+Download the 28 core objects matching Python implementation:
 
-2. **Space** (12 assets)
-   - Rocket, spaceship, UFO
-   - Planets: Earth, Mars, Saturn
-   - Astronaut, alien
-   - Stars, moon, comet
-   - Satellite, space station
+**Themes & Objects (28 total)**:
+1. **Food** (7 objects)
+   - 🍎 Apple (1F34E)
+   - 🍌 Banana (1F34C)
+   - 🍊 Orange (1F34A)
+   - 🍓 Strawberry (1F353)
+   - 🍪 Cookie (1F36A)
+   - 🍕 Pizza (1F355)
+   - 🥕 Carrot (1F955)
 
-3. **Sports** (12 assets)
-   - Soccer ball, goal, player
-   - Basketball, hoop, player
-   - Baseball, bat, glove
-   - Swimming, tennis, running
+2. **Animals** (5 objects)
+   - 🐶 Dog (1F436)
+   - 🐱 Cat (1F431)
+   - 🐰 Rabbit (1F430)
+   - 🐻 Bear (1F43B)
+   - 🐟 Fish (1F41F)
 
-4. **Food** (12 assets)
-   - Fruits: apple, banana, orange, strawberry
-   - Vegetables: carrot, broccoli, corn
-   - Snacks: pizza, burger, ice cream
-   - Drinks: juice, milk
+3. **Nature** (4 objects)
+   - 🦋 Butterfly (1F98B)
+   - 🐝 Bee (1F41D)
+   - 🌼 Flower (1F33C)
+   - 🌳 Tree (1F333)
 
-5. **Nature** (12 assets)
-   - Trees: oak, pine, palm
-   - Flowers: sunflower, rose, tulip
-   - Weather: sun, cloud, rain, snow
-   - Mountains, river, forest
+4. **Space** (4 objects)
+   - ⭐ Star (2B50)
+   - ☀️ Sun (2600)
+   - 🌙 Moon (1F319)
+   - 🚀 Rocket (1F680)
 
-**Total**: 60 assets (12 per theme)
+5. **Other** (8 objects)
+   - 🚗 Car (1F697)
+   - 📖 Book (1F4D6)
+   - ✏️ Pencil (270F)
+   - ⚫ Circle (26AB)
+   - ◼️ Square (25FC)
+   - 🔺 Triangle (1F53A)
+   - ▭ Rectangle (25AD)
+   - ❤️ Heart (2764)
+
+**Total**: 28 assets (matching Python implementation)
 
 ---
 
-**Step 2: Organize Files** (1 hour)
+**Step 2: Organize Files** (30 minutes)
 ```
 public/assets/svg/
-  ├── animals/
-  │   ├── cow.svg
-  │   ├── dog.svg
-  │   └── ...
-  ├── space/
-  │   ├── rocket.svg
-  │   ├── planet-earth.svg
-  │   └── ...
-  ├── sports/
   ├── food/
-  └── nature/
+  │   ├── apple.svg (1F34E)
+  │   ├── banana.svg (1F34C)
+  │   └── ... (7 total)
+  ├── animals/
+  │   ├── dog.svg (1F436)
+  │   ├── cat.svg (1F431)
+  │   └── ... (5 total)
+  ├── nature/
+  │   └── ... (4 total)
+  ├── space/
+  │   └── ... (4 total)
+  └── other/
+      └── ... (8 total)
 ```
 
-File naming convention: `theme/descriptive-name.svg`
+File naming: `theme/descriptive-name.svg` + comment with Unicode code
 
 ---
 
@@ -267,49 +283,243 @@ File naming convention: `theme/descriptive-name.svg`
 ```json
 // assets/svg-manifest.json
 {
+  "food": [
+    { "id": "apple", "unicode": "1F34E", "path": "/assets/svg/food/apple.svg", "name": "Apple" },
+    { "id": "banana", "unicode": "1F34C", "path": "/assets/svg/food/banana.svg", "name": "Banana" },
+    { "id": "orange", "unicode": "1F34A", "path": "/assets/svg/food/orange.svg", "name": "Orange" },
+    { "id": "strawberry", "unicode": "1F353", "path": "/assets/svg/food/strawberry.svg", "name": "Strawberry" },
+    { "id": "cookie", "unicode": "1F36A", "path": "/assets/svg/food/cookie.svg", "name": "Cookie" },
+    { "id": "pizza", "unicode": "1F355", "path": "/assets/svg/food/pizza.svg", "name": "Pizza" },
+    { "id": "carrot", "unicode": "1F955", "path": "/assets/svg/food/carrot.svg", "name": "Carrot" }
+  ],
   "animals": [
-    { "id": "cow", "path": "/assets/svg/animals/cow.svg", "keywords": ["farm", "milk", "counting"] },
-    { "id": "dog", "path": "/assets/svg/animals/dog.svg", "keywords": ["pet", "friend", "counting"] },
-    ...
-  ],
-  "space": [
-    { "id": "rocket", "path": "/assets/svg/space/rocket.svg", "keywords": ["launch", "counting", "speed"] },
-    ...
-  ],
-  ...
+    { "id": "dog", "unicode": "1F436", "path": "/assets/svg/animals/dog.svg", "name": "Dog" },
+    { "id": "cat", "unicode": "1F431", "path": "/assets/svg/animals/cat.svg", "name": "Cat" },
+    { "id": "rabbit", "unicode": "1F430", "path": "/assets/svg/animals/rabbit.svg", "name": "Rabbit" },
+    { "id": "bear", "unicode": "1F43B", "path": "/assets/svg/animals/bear.svg", "name": "Bear" },
+    { "id": "fish", "unicode": "1F41F", "path": "/assets/svg/animals/fish.svg", "name": "Fish" }
+  ]
 }
 ```
 
 ---
 
-**Step 4: Create Selection Helper** (1.5 hours)
+**Step 4: Implement SVG Rendering** (30 minutes)
 
 ```typescript
-// lib/assets/svg-selector.ts
+// lib/pdf/svg-renderer.ts
+import SVGtoPDF from 'svg-to-pdfkit';
+import fs from 'fs';
+import path from 'path';
 import manifest from '@/assets/svg-manifest.json';
 
 /**
- * Select random SVG for a theme
+ * Render SVG asset in PDF at specified position
  */
-export function selectRandomSVG(theme: string): SVGAsset {
-  const assets = manifest[theme] || [];
-  return assets[Math.floor(Math.random() * assets.length)];
+export async function renderSVGAsset(
+  doc: PDFKit.PDFDocument,
+  assetId: string,
+  x: number,
+  y: number,
+  size: number
+) {
+  // Find asset in manifest
+  const asset = findAssetById(assetId);
+  if (!asset) {
+    console.warn(`Asset ${assetId} not found, using fallback`);
+    renderFallbackCircle(doc, x, y, size);
+    return;
+  }
+
+  // Read SVG file
+  const svgPath = path.join(process.cwd(), 'public', asset.path);
+  const svgData = fs.readFileSync(svgPath, 'utf-8');
+
+  // Render SVG to PDF
+  SVGtoPDF(doc, svgData, x, y, {
+    width: size,
+    height: size,
+    preserveAspectRatio: 'xMidYMid meet'
+  });
 }
 
 /**
- * Select multiple unique SVGs for a theme
+ * Fallback: simple colored circle
  */
-export function selectUniqueSVGs(theme: string, count: number): SVGAsset[] {
-  const assets = manifest[theme] || [];
-  return shuffleArray(assets).slice(0, count);
+function renderFallbackCircle(doc: PDFKit.PDFDocument, x: number, y: number, size: number) {
+  doc.fillColor('#95E1D3')
+     .circle(x + size / 2, y + size / 2, size / 2)
+     .fill();
+  doc.fillColor('#000'); // Reset
 }
+```
 
-/**
- * Embed SVG in PDF
- */
-export async function embedSVGInPDF(doc: PDFDocument, svgPath: string, x: number, y: number, size: number) {
-  // Convert SVG to PDF-compatible format
-  // Or embed as base64 image
+**Step 5: Create Visual Pattern Renderers** (30 minutes)
+
+Port the 5 rendering patterns from Python implementation:
+
+```typescript
+// lib/pdf/visual-patterns.ts
+
+export type VisualPattern =
+  | { type: 'countable_objects'; item: string; count: number }
+  | { type: 'grouped_objects'; groups: Array<{ item: string; count: number }> }
+  | { type: 'array'; item: string; rows: number; cols: number }
+  | { type: 'number_line'; start: number; end: number; highlights: number[] }
+  | { type: 'fraction_circle'; numerator: number; denominator: number };
+
+export class VisualPatternRenderer {
+  /**
+   * Render countable objects (e.g., "Count the apples: 🍎🍎🍎🍎🍎")
+   */
+  static async renderCountableObjects(
+    doc: PDFKit.PDFDocument,
+    pattern: { item: string; count: number },
+    x: number,
+    y: number,
+    size: number = 30
+  ) {
+    const spacing = size + 10;
+    for (let i = 0; i < pattern.count; i++) {
+      await renderSVGAsset(doc, pattern.item, x + (i * spacing), y, size);
+    }
+  }
+
+  /**
+   * Render grouped objects for addition (e.g., "🍎🍎🍎 + 🍎🍎")
+   */
+  static async renderGroupedObjects(
+    doc: PDFKit.PDFDocument,
+    pattern: { groups: Array<{ item: string; count: number }> },
+    x: number,
+    y: number,
+    size: number = 30
+  ) {
+    let xOffset = 0;
+    for (let g = 0; g < pattern.groups.length; g++) {
+      const group = pattern.groups[g];
+
+      // Render items in this group
+      for (let i = 0; i < group.count; i++) {
+        await renderSVGAsset(doc, group.item, x + xOffset, y, size);
+        xOffset += size + 5;
+      }
+
+      // Add + sign between groups
+      if (g < pattern.groups.length - 1) {
+        doc.fontSize(20).text('+', x + xOffset, y + size / 4);
+        xOffset += 30;
+      }
+    }
+  }
+
+  /**
+   * Render array for multiplication (3 rows × 4 cols)
+   */
+  static async renderArray(
+    doc: PDFKit.PDFDocument,
+    pattern: { item: string; rows: number; cols: number },
+    x: number,
+    y: number,
+    size: number = 25
+  ) {
+    const spacing = size + 5;
+    for (let row = 0; row < pattern.rows; row++) {
+      for (let col = 0; col < pattern.cols; col++) {
+        await renderSVGAsset(
+          doc,
+          pattern.item,
+          x + (col * spacing),
+          y + (row * spacing),
+          size
+        );
+      }
+    }
+  }
+
+  /**
+   * Render number line with tick marks
+   */
+  static renderNumberLine(
+    doc: PDFKit.PDFDocument,
+    pattern: { start: number; end: number; highlights: number[] },
+    x: number,
+    y: number,
+    width: number = 400
+  ) {
+    const range = pattern.end - pattern.start;
+    const tickSpacing = width / range;
+
+    // Draw main line
+    doc.moveTo(x, y)
+       .lineTo(x + width, y)
+       .stroke();
+
+    // Draw tick marks and numbers
+    for (let i = pattern.start; i <= pattern.end; i++) {
+      const tickX = x + ((i - pattern.start) * tickSpacing);
+
+      // Highlight if in highlights array
+      const isHighlighted = pattern.highlights.includes(i);
+      if (isHighlighted) {
+        doc.fillColor('#FF6B6B')
+           .circle(tickX, y - 15, 8)
+           .fill();
+        doc.fillColor('#000');
+      }
+
+      // Tick mark
+      doc.moveTo(tickX, y - 5)
+         .lineTo(tickX, y + 5)
+         .stroke();
+
+      // Number label
+      doc.fontSize(10).text(i.toString(), tickX - 5, y + 10);
+    }
+  }
+
+  /**
+   * Render fraction circle (shaded portions)
+   */
+  static renderFractionCircle(
+    doc: PDFKit.PDFDocument,
+    pattern: { numerator: number; denominator: number },
+    x: number,
+    y: number,
+    radius: number = 50
+  ) {
+    const centerX = x + radius;
+    const centerY = y + radius;
+    const anglePerSlice = (2 * Math.PI) / pattern.denominator;
+
+    // Draw filled slices (numerator)
+    doc.fillColor('#4ECDC4');
+    for (let i = 0; i < pattern.numerator; i++) {
+      const startAngle = i * anglePerSlice - Math.PI / 2;
+      const endAngle = startAngle + anglePerSlice;
+
+      doc.moveTo(centerX, centerY)
+         .arc(centerX, centerY, radius, startAngle, endAngle)
+         .lineTo(centerX, centerY)
+         .fill();
+    }
+
+    // Draw all slice outlines
+    doc.strokeColor('#000').lineWidth(2);
+    for (let i = 0; i < pattern.denominator; i++) {
+      const angle = i * anglePerSlice - Math.PI / 2;
+      const endX = centerX + radius * Math.cos(angle);
+      const endY = centerY + radius * Math.sin(angle);
+
+      doc.moveTo(centerX, centerY)
+         .lineTo(endX, endY)
+         .stroke();
+    }
+
+    // Draw outer circle
+    doc.circle(centerX, centerY, radius).stroke();
+    doc.fillColor('#000'); // Reset
+  }
 }
 ```
 
@@ -317,12 +527,14 @@ export async function embedSVGInPDF(doc: PDFDocument, svgPath: string, x: number
 
 ## Success Criteria
 
-- [x] Decision made: Pre-made SVG assets
-- [ ] 60 SVG assets downloaded (12 per theme)
-- [ ] Assets organized in folder structure
-- [ ] Asset manifest created
-- [ ] Selection helper functions implemented
-- [ ] Test embedding in PDF (via PDFKit)
+- [x] Decision made: OpenMoji SVG library
+- [x] 28 core objects identified (matching Python implementation)
+- [ ] 28 OpenMoji SVG files downloaded
+- [ ] Assets organized in folder structure (5 themes)
+- [ ] Asset manifest JSON created (28 entries)
+- [ ] SVG rendering utility implemented
+- [ ] 5 visual pattern renderers ported from Python
+- [ ] Test all patterns in PDF (via PDFKit)
 - [ ] Verify visual quality in generated worksheets
 
 ---
@@ -394,32 +606,35 @@ Allow teachers to upload their own clip art libraries.
 
 ## Asset License Requirements
 
-**Must Have**:
+**OpenMoji License**: CC BY-SA 4.0
+
+**Requirements**:
 - ✅ Commercial use allowed
-- ✅ No attribution required (or attribute in footer)
+- ⚠️ Attribution required
 - ✅ Modification allowed
 - ✅ Distribution allowed (embedded in PDFs)
+- ⚠️ Share-alike (derivatives must use same license)
 
-**Recommended Licenses**:
-- MIT License
-- CC0 (Public Domain)
-- Free for commercial use with attribution
+**Attribution Format** (in PDF footer):
+```
+Icons by OpenMoji (CC BY-SA 4.0) - openmoji.org
+```
 
-**Sources Verification**:
-- unDraw: MIT License ✅
-- Storyset: Free for commercial with attribution ✅
-- DrawKit: MIT License ✅
-- Icons8: Free tier available ✅
+**Compliance**:
+- Add attribution to PDF footer on all worksheets
+- Include license file in repository
+- Document OpenMoji usage in README
 
 ---
 
 ## References
 
-- [unDraw](https://undraw.co/)
-- [Storyset](https://storyset.com/)
-- [DrawKit](https://www.drawkit.com/)
-- [Icons8 Illustrations](https://icons8.com/illustrations)
+- [OpenMoji](https://openmoji.org/) - Open-source emoji library
+- [OpenMoji GitHub](https://github.com/hfg-gmuend/openmoji)
+- [OpenMoji License](https://github.com/hfg-gmuend/openmoji/blob/master/LICENSE.txt) - CC BY-SA 4.0
+- [SVG-to-PDFKit](https://github.com/alafr/SVG-to-PDFKit) - SVG rendering for PDFKit
 - ADR-001: PDF Generation Approach
+- Python Worksheet Generator (Claude skill) - Reference implementation
 
 ---
 
@@ -428,12 +643,15 @@ Allow teachers to upload their own clip art libraries.
 | Date | Version | Changes | Author |
 |------|---------|---------|--------|
 | 2025-10-29 | 1.0 | Initial decision | Development Team |
+| 2025-10-29 | 2.0 | Updated to OpenMoji (from generic SVG sources) | Development Team |
 
 ---
 
 **Next Steps**:
-1. ✅ Decision made: Pre-made SVG assets
-2. ⏳ Download and organize 60 SVG assets
-3. ⏳ Create asset manifest JSON
-4. ⏳ Implement selection helper functions
-5. ⏳ Test SVG embedding in PDFKit
+1. ✅ Decision made: OpenMoji SVG library
+2. ✅ 28 objects identified matching Python implementation
+3. ⏳ Download 28 OpenMoji SVG files (Days 5-7)
+4. ⏳ Create asset manifest JSON
+5. ⏳ Implement SVG rendering utility
+6. ⏳ Port 5 visual pattern renderers from Python
+7. ⏳ Test all patterns in PDFKit

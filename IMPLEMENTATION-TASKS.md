@@ -53,20 +53,26 @@
 ### Visual Assets Strategy
 - [x] ✅ Research: Browse SVG asset libraries (unDraw, Storyset, etc)
 - [x] ✅ Decision: Pre-made SVGs vs AI generation for MVP
-- [x] ✅ Identified 5 theme categories (animals, space, sports, food, nature)
-- [ ] ⏳ Source 60 SVG assets (12 per theme) - DEFERRED to Days 1-2
-- [ ] ⏳ Create `public/assets/svg/` directory structure - DEFERRED to Days 1-2
-- [ ] ⏳ Add SVG files to project - DEFERRED to Days 1-2
-- [ ] ⏳ Create asset manifest: `assets/svg-manifest.json` - DEFERRED to Days 1-2
-- [x] ⏭️ AI-generated: Set up DALL-E (SKIPPED - chose pre-made SVGs)
-- [x] ⏭️ AI-generated: Test image generation (SKIPPED - chose pre-made SVGs)
-- [x] ⏭️ AI-generated: Calculate cost per image (SKIPPED - chose pre-made SVGs)
+- [x] ✅ Identified 5 theme categories (food, animals, nature, space, other)
+- [x] ✅ **UPDATED DECISION**: Changed to OpenMoji library (matching Python implementation)
+- [x] ✅ Identified 28 core objects matching Python version
+- [ ] ⏳ Download 28 OpenMoji SVG files (food: 7, animals: 5, nature: 4, space: 4, other: 8) - DEFERRED to Days 5-7
+- [ ] ⏳ Create `public/assets/svg/` directory structure (5 theme folders) - DEFERRED to Days 5-7
+- [ ] ⏳ Add 28 SVG files to project with Unicode code comments - DEFERRED to Days 5-7
+- [ ] ⏳ Create asset manifest: `assets/svg-manifest.json` (28 objects with Unicode codes) - DEFERRED to Days 5-7
+- [ ] ⏳ Implement SVG rendering utility (`lib/pdf/svg-renderer.ts`) - DEFERRED to Days 5-7
+- [ ] ⏳ Port 5 visual patterns from Python (`lib/pdf/visual-patterns.ts`): countable_objects, grouped_objects, array, number_line, fraction_circle - DEFERRED to Days 5-7
+- [x] ⏭️ AI-generated: Set up DALL-E (SKIPPED - chose OpenMoji SVGs)
+- [x] ⏭️ AI-generated: Test image generation (SKIPPED - chose OpenMoji SVGs)
+- [x] ⏭️ AI-generated: Calculate cost per image (SKIPPED - chose OpenMoji SVGs)
 - [x] ✅ Document decision and rationale (ADR-002)
+- [x] ✅ **UPDATED**: ADR-002 revised to specify OpenMoji as source
 
 **Acceptance Criteria**: ✅ ALL MET
-- ✅ Visual strategy decided and documented: Pre-made SVG assets
-- ✅ Decision documented in ADR-002
-- ⏳ Assets download deferred to Days 1-2 (acceptable for Phase 0)
+- ✅ Visual strategy decided and documented: OpenMoji SVG library
+- ✅ Decision documented in ADR-002 (updated with OpenMoji specifics)
+- ✅ 28 core objects identified matching Python implementation
+- ⏳ Assets download and implementation deferred to Days 5-7 (acceptable for Phase 0)
 
 ---
 
@@ -2036,6 +2042,6 @@
 - ✅ Phase 0 completed (27/27 tasks)
 - ✅ Cost validation: $0.032/worksheet (85% under budget)
 - ✅ PDF generation: 0.03s using PDFKit (166x faster than target)
-- ✅ Visual assets: Decided on pre-made SVG assets
-- ✅ Architecture: ADR-001 (PDFKit) + ADR-002 (SVG assets)
+- ✅ Visual assets: Decided on OpenMoji SVG library (28 objects, matching Python implementation)
+- ✅ Architecture: ADR-001 (PDFKit) + ADR-002 (OpenMoji assets, updated)
 - ✅ Committed to GitHub: github.com/l2laihub/math-worksheet-generator
