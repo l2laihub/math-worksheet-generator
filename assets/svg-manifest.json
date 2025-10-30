@@ -1,0 +1,180 @@
+{
+  "food": [
+    {
+      "id": "apple",
+      "unicode": "1F34E",
+      "path": "/assets/svg/food/apple.svg",
+      "name": "Apple"
+    },
+    {
+      "id": "banana",
+      "unicode": "1F34C",
+      "path": "/assets/svg/food/banana.svg",
+      "name": "Banana"
+    },
+    {
+      "id": "orange",
+      "unicode": "1F34A",
+      "path": "/assets/svg/food/orange.svg",
+      "name": "Orange"
+    },
+    {
+      "id": "strawberry",
+      "unicode": "1F353",
+      "path": "/assets/svg/food/strawberry.svg",
+      "name": "Strawberry"
+    },
+    {
+      "id": "cookie",
+      "unicode": "1F36A",
+      "path": "/assets/svg/food/cookie.svg",
+      "name": "Cookie"
+    },
+    {
+      "id": "pizza",
+      "unicode": "1F355",
+      "path": "/assets/svg/food/pizza.svg",
+      "name": "Pizza"
+    },
+    {
+      "id": "carrot",
+      "unicode": "1F955",
+      "path": "/assets/svg/food/carrot.svg",
+      "name": "Carrot"
+    }
+  ],
+  "animals": [
+    {
+      "id": "dog",
+      "unicode": "1F436",
+      "path": "/assets/svg/animals/dog.svg",
+      "name": "Dog"
+    },
+    {
+      "id": "cat",
+      "unicode": "1F431",
+      "path": "/assets/svg/animals/cat.svg",
+      "name": "Cat"
+    },
+    {
+      "id": "rabbit",
+      "unicode": "1F430",
+      "path": "/assets/svg/animals/rabbit.svg",
+      "name": "Rabbit"
+    },
+    {
+      "id": "bear",
+      "unicode": "1F43B",
+      "path": "/assets/svg/animals/bear.svg",
+      "name": "Bear"
+    },
+    {
+      "id": "fish",
+      "unicode": "1F41F",
+      "path": "/assets/svg/animals/fish.svg",
+      "name": "Fish"
+    }
+  ],
+  "nature": [
+    {
+      "id": "butterfly",
+      "unicode": "1F98B",
+      "path": "/assets/svg/nature/butterfly.svg",
+      "name": "Butterfly"
+    },
+    {
+      "id": "bee",
+      "unicode": "1F41D",
+      "path": "/assets/svg/nature/bee.svg",
+      "name": "Bee"
+    },
+    {
+      "id": "flower",
+      "unicode": "1F33C",
+      "path": "/assets/svg/nature/flower.svg",
+      "name": "Flower"
+    },
+    {
+      "id": "tree",
+      "unicode": "1F333",
+      "path": "/assets/svg/nature/tree.svg",
+      "name": "Tree"
+    }
+  ],
+  "space": [
+    {
+      "id": "star",
+      "unicode": "2B50",
+      "path": "/assets/svg/space/star.svg",
+      "name": "Star"
+    },
+    {
+      "id": "sun",
+      "unicode": "2600",
+      "path": "/assets/svg/space/sun.svg",
+      "name": "Sun"
+    },
+    {
+      "id": "moon",
+      "unicode": "1F319",
+      "path": "/assets/svg/space/moon.svg",
+      "name": "Moon"
+    },
+    {
+      "id": "rocket",
+      "unicode": "1F680",
+      "path": "/assets/svg/space/rocket.svg",
+      "name": "Rocket"
+    }
+  ],
+  "other": [
+    {
+      "id": "car",
+      "unicode": "1F697",
+      "path": "/assets/svg/other/car.svg",
+      "name": "Car"
+    },
+    {
+      "id": "book",
+      "unicode": "1F4D6",
+      "path": "/assets/svg/other/book.svg",
+      "name": "Book"
+    },
+    {
+      "id": "pencil",
+      "unicode": "270F",
+      "path": "/assets/svg/other/pencil.svg",
+      "name": "Pencil"
+    },
+    {
+      "id": "circle",
+      "unicode": "26AB",
+      "path": "/assets/svg/other/circle.svg",
+      "name": "Circle"
+    },
+    {
+      "id": "square",
+      "unicode": "25FC",
+      "path": "/assets/svg/other/square.svg",
+      "name": "Square"
+    },
+    {
+      "id": "triangle",
+      "unicode": "1F53A",
+      "path": "/assets/svg/other/triangle.svg",
+      "name": "Triangle"
+    },
+    {
+      "id": "rectangle",
+      "unicode": "25AD",
+      "path": "/assets/svg/other/rectangle.svg",
+      "name": "Rectangle"
+    },
+    {
+      "id": "heart",
+      "unicode": "2764",
+      "path": "/assets/svg/other/heart.svg",
+      "name": "Heart"
+    }
+  ]
+}

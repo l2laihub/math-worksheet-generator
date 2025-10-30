@@ -36,7 +36,11 @@
       "Bash(mount:*)",
       "Bash(node tests/pdf-poc/generate-sample-worksheet.js:*)",
       "Bash(cmd.exe /c \"wmic logicaldisk where drivetype=4 get deviceid, providername\")",
-      "Bash(rsync:*)"
+      "Bash(rsync:*)",
+      "Bash(node test-db-connection.js:*)",
+      "Bash(npm run prisma:generate:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
