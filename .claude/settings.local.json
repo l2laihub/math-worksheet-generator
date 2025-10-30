@@ -21,7 +21,22 @@
       "Bash(pkill:*)",
       "Bash(lsof:*)",
       "Bash(netstat:*)",
-      "Bash(taskkill //F //PID 49888)"
+      "Bash(taskkill //F //PID 49888)",
+      "Bash(findstr:*)",
+      "Bash(ps:*)",
+      "Bash(taskkill:*)",
+      "Bash(cd:*)",
+      "Bash(dir:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(nc:*)",
+      "Bash(timeout 5 bash -c \"cat < /dev/null > /dev/tcp/db.ryjuhtuisccsupcjupdf.supabase.co/5432\")",
+      "Bash(ping:*)",
+      "Bash(node -e:*)",
+      "Bash(echo:*)",
+      "Bash(mount:*)",
+      "Bash(node tests/pdf-poc/generate-sample-worksheet.js:*)",
+      "Bash(cmd.exe /c \"wmic logicaldisk where drivetype=4 get deviceid, providername\")",
+      "Bash(rsync:*)"
     ],
     "deny": [],
     "ask": []

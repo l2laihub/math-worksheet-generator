@@ -1,5 +1,47 @@
 # Troubleshooting Guide
 
+## Issue: Dev Server Shows "Ready" But ERR_CONNECTION_REFUSED in Browser (WSL)
+
+### Symptoms
+- Running `npm run dev` in WSL shows "✓ Ready in X.Xs"
+- Console shows `Local: http://localhost:3001`
+- Browser immediately shows "ERR_CONNECTION_REFUSED" or "This site can't be reached"
+- Server appears to start successfully but doesn't accept connections
+
+### Root Cause
+The Next.js binary (`node_modules/.bin/next`) doesn't have execute permissions in WSL. This happens when:
+1. You run `npm install` from Windows
+2. Then try to run `npm run dev` from WSL
+3. The execute bit isn't preserved across the Windows/WSL boundary
+
+### Solution
+
+**Quick Fix:**
+```bash
+# From WSL terminal
+chmod +x node_modules/.bin/next
+npm run dev
+```
+
+**Permanent Fix (Recommended):**
+```bash
+# Reinstall all dependencies from within WSL
+rm -rf node_modules package-lock.json
+npm install
+npm run dev
+```
+
+### Why This Happens
+WSL and Windows handle file permissions differently. When npm packages are installed from Windows, the executable flags on binary files may not be set correctly when accessed from WSL.
+
+### Verification
+After applying the fix, you should see:
+- Server starts successfully
+- Browser can access http://localhost:3001
+- No connection refused errors
+
+---
+
 ## Issue: lightningcss Module Not Found
 
 ### Error Message

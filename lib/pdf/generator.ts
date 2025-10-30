@@ -159,22 +159,29 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       currentY += 5;
     });
 
-    // Footer
-    const pageCount = doc.bufferedPageRange().count;
-    for (let i = 0; i < pageCount; i++) {
-      doc.switchToPage(i);
-      doc
-        .fontSize(8)
-        .fillColor('#666')
-        .text(
-          `Page ${i + 1} of ${pageCount}`,
-          50,
-          doc.page.height - 50,
-          {
-            align: 'center',
-            width: doc.page.width - 100,
-          }
-        );
+    // Footer - add page numbers to all pages
+    const range = doc.bufferedPageRange();
+    const pageCount = range.count;
+
+    if (pageCount > 0) {
+      // PDFKit: bufferedPageRange() returns {start: X, count: Y}
+      // switchToPage() expects absolute page index starting from range.start
+      for (let i = 0; i < pageCount; i++) {
+        const pageIndex = range.start + i; // Use start as base
+        doc.switchToPage(pageIndex);
+        doc
+          .fontSize(8)
+          .fillColor('#666')
+          .text(
+            `Page ${i + 1} of ${pageCount}`,
+            50,
+            doc.page.height - 50,
+            {
+              align: 'center',
+              width: doc.page.width - 100,
+            }
+          );
+      }
     }
 
     doc.end();
