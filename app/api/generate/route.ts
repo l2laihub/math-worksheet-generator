@@ -101,7 +101,7 @@ async function processGenerationAsync(generationId: string, params: any) {
 
     // Step 1: Validate environment variables
     currentStep = 'environment_validation';
-    const requiredEnvVars = ['ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY'];
+    const requiredEnvVars = ['ANTHROPIC_API_KEY', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'];
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
     if (missingVars.length > 0) {
       throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
