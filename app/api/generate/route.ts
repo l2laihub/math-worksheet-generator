@@ -149,14 +149,29 @@ async function processGenerationAsync(generationId: string, params: any) {
 
     // Step 5: Parse worksheet response
     currentStep = 'response_parsing';
-    console.log('[Generate] Parsing worksheet response...', { generationId });
-    
-    const worksheetData = parseWorksheetResponse(responseText);
-    console.log('[Generate] Response parsed successfully', {
-      generationId,
-      problemCount: worksheetData.problems?.length || 0,
-      title: worksheetData.title
+    console.log('[Generate] Parsing worksheet response...', { 
+      generationId, 
+      responsePreview: responseText.substring(0, 200) + '...'
     });
+    
+    let worksheetData;
+    try {
+      worksheetData = parseWorksheetResponse(responseText);
+      console.log('[Generate] Response parsed successfully', {
+        generationId,
+        problemCount: worksheetData.problems?.length || 0,
+        title: worksheetData.title
+      });
+    } catch (parseError) {
+      console.error('[Generate] Failed to parse Claude response', {
+        generationId,
+        error: parseError instanceof Error ? parseError.message : 'Unknown parsing error',
+        responseLength: responseText.length,
+        responseStart: responseText.substring(0, 500),
+        responseEnd: responseText.substring(Math.max(0, responseText.length - 500))
+      });
+      throw new Error('Failed to parse Claude response. Invalid JSON format.');
+    }
 
     // Step 6: Validate worksheet
     currentStep = 'worksheet_validation';

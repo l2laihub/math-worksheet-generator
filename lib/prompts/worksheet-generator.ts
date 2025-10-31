@@ -173,8 +173,12 @@ export function parseWorksheetResponse(response: string): WorksheetOutput {
 
     return parsed as WorksheetOutput;
   } catch (error) {
-    console.error('Failed to parse worksheet response:', error);
-    console.error('JSON string attempted:', jsonStr.substring(0, 500) + '...');
+    console.error('Failed to parse worksheet response:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      originalResponse: response.substring(0, 1000) + (response.length > 1000 ? '...' : ''),
+      extractedJson: jsonStr.substring(0, 1000) + (jsonStr.length > 1000 ? '...' : ''),
+      jsonMatch: !!jsonMatch
+    });
     
     // Try to recover by creating a minimal structure
     try {
