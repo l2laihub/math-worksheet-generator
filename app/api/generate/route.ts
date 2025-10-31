@@ -163,14 +163,18 @@ async function processGenerationAsync(generationId: string, params: any) {
         title: worksheetData.title
       });
     } catch (parseError) {
-      console.error('[Generate] Failed to parse Claude response', {
+      const errorDetails = {
         generationId,
         error: parseError instanceof Error ? parseError.message : 'Unknown parsing error',
         responseLength: responseText.length,
         responseStart: responseText.substring(0, 500),
         responseEnd: responseText.substring(Math.max(0, responseText.length - 500))
-      });
-      throw new Error('Failed to parse Claude response. Invalid JSON format.');
+      };
+      console.error('[Generate] Failed to parse Claude response', errorDetails);
+      
+      // Store detailed error in database for debugging
+      const detailedError = `Parsing failed: ${parseError instanceof Error ? parseError.message : 'Unknown'}. Response preview: ${responseText.substring(0, 200)}...`;
+      throw new Error(detailedError);
     }
 
     // Step 6: Validate worksheet
