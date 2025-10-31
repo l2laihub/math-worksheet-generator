@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
 
   // Disable Turbopack to avoid WSL path resolution issues
   // turbopack: {},
+
+  // Enable better Netlify support
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
