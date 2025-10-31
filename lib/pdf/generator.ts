@@ -489,12 +489,12 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
                 }
               );
           } catch (pageError) {
-            console.warn(`[PDF] Failed to switch to page ${pageIndex}:`, pageError.message);
+            console.warn(`[PDF] Failed to switch to page ${pageIndex}:`, pageError instanceof Error ? pageError.message : 'Unknown error');
             // Continue with next page
           }
         }
       } catch (footerError) {
-        console.warn('[PDF] Footer generation failed:', footerError.message);
+        console.warn('[PDF] Footer generation failed:', footerError instanceof Error ? footerError.message : 'Unknown error');
         // Continue without page numbers
       }
     }
