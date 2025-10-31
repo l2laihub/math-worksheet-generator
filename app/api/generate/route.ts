@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { generateWorksheetPrompt, parseWorksheetResponse, validateWorksheet } from '@/lib/prompts/worksheet-generator';
+import { checkWorksheetCompliance } from '@/lib/utils/compliance-checker';
 import type { GenerateWorksheetRequest, GenerateWorksheetResponse } from '@/types/worksheet';
 import { generateWorksheetPDF } from '@/lib/pdf/generator';
 import { uploadPDF, generatePDFFileName } from '@/lib/storage/upload';
@@ -43,6 +44,20 @@ export async function POST(request: NextRequest) {
     }
 
     const params = validationResult.data;
+    
+    // Enhanced parameter logging
+    console.log('[Generate] Received parameters:', JSON.stringify({
+      gradeLevel: params.gradeLevel,
+      topic: params.topic,
+      difficulty: params.difficulty,
+      problemCount: params.problemCount,
+      visualTheme: params.visualTheme,
+      mathematicalTools: params.mathematicalTools || 'none',
+      problemSolvingStrategy: params.problemSolvingStrategy || 'none',
+      scaffoldingLevel: params.scaffoldingLevel || 'default',
+      representationType: params.representationType || 'default',
+      includeThinkingPrompts: params.includeThinkingPrompts || false,
+    }, null, 2));
 
     // Generate unique ID for this generation
     const generationId = crypto.randomUUID();
@@ -128,6 +143,19 @@ async function processGenerationAsync(generationId: string, params: any) {
       includeThinkingPrompts: params.includeThinkingPrompts,
     });
     console.log('[Generate] Prompt generated', { generationId, promptLength: prompt.length });
+    
+    // Enhanced prompt logging for debugging
+    console.log('[Generate] Prompt preview (first 2000 chars):', prompt.substring(0, 2000));
+    console.log('[Generate] Prompt analysis:', {
+      generationId,
+      hasToolInstructions: params.mathematicalTools?.length ? prompt.includes('Mathematical Tools') : 'N/A',
+      hasStrategyInstructions: params.problemSolvingStrategy && params.problemSolvingStrategy !== 'none' ? prompt.includes('Problem-Solving Strategy') : 'N/A',
+      hasRepresentationInstructions: prompt.includes('Representation Focus'),
+      containsMandatory: prompt.includes('MANDATORY'),
+      selectedTools: params.mathematicalTools || [],
+      selectedStrategy: params.problemSolvingStrategy || 'none',
+      selectedRepresentation: params.representationType || 'mixed',
+    });
 
     // Step 3: Call Claude API
     currentStep = 'claude_api_call';
@@ -155,6 +183,20 @@ async function processGenerationAsync(generationId: string, params: any) {
       generationId,
       responseLength: responseText.length,
       tokenUsage: message.usage,
+    });
+    
+    // Enhanced response logging for debugging
+    console.log('[Generate] Claude response preview (first 1000 chars):', responseText.substring(0, 1000));
+    console.log('[Generate] Claude response analysis:', {
+      generationId,
+      hasJsonBlock: responseText.includes('```json'),
+      hasProblemsArray: responseText.includes('"problems"'),
+      hasMetadata: responseText.includes('"metadata"'),
+      responseStructure: {
+        startsWithJson: responseText.trim().startsWith('{') || responseText.includes('```json'),
+        endsWithJson: responseText.trim().endsWith('}') || responseText.includes('```'),
+        containsTitle: responseText.includes('"title"'),
+      }
     });
 
     // Step 5: Parse worksheet response
@@ -220,13 +262,53 @@ async function processGenerationAsync(generationId: string, params: any) {
       problemCount: worksheetData.problems.length,
     });
 
+    // Step 6.5: Compliance checking
+    currentStep = 'compliance_checking';
+    const complianceResult = checkWorksheetCompliance(worksheetData, {
+      mathematicalTools: params.mathematicalTools as any,
+      problemSolvingStrategy: params.problemSolvingStrategy as any,
+      scaffoldingLevel: params.scaffoldingLevel,
+      representationType: params.representationType,
+      includeThinkingPrompts: params.includeThinkingPrompts,
+      gradeLevel: params.gradeLevel,
+      topic: params.topic,
+    });
+
+    console.log('[Generate] Compliance check results:', {
+      generationId,
+      isCompliant: complianceResult.isCompliant,
+      score: complianceResult.score,
+      violations: complianceResult.violations,
+      successes: complianceResult.successes,
+    });
+
+    // Log detailed compliance analysis
+    if (!complianceResult.isCompliant) {
+      console.warn('[Generate] Compliance violations detected:', {
+        generationId,
+        score: complianceResult.score,
+        violations: complianceResult.violations,
+        details: complianceResult.details,
+      });
+    }
+
     // Step 7: Generate PDFs
     currentStep = 'pdf_generation';
     console.log('[Generate] Generating PDFs...', { generationId });
 
+    const selections = {
+      mathematicalTools: params.mathematicalTools,
+      problemSolvingStrategy: params.problemSolvingStrategy,
+      scaffoldingLevel: params.scaffoldingLevel,
+      representationType: params.representationType,
+      includeThinkingPrompts: params.includeThinkingPrompts,
+      difficulty: params.difficulty,
+      theme: params.visualTheme,
+    };
+
     const [worksheetBuffer, answerKeyBuffer] = await Promise.all([
-      generateWorksheetPDF(worksheetData, false),
-      generateWorksheetPDF(worksheetData, true),
+      generateWorksheetPDF(worksheetData, false, selections),
+      generateWorksheetPDF(worksheetData, true, selections),
     ]);
 
     console.log('[Generate] PDFs generated', {

@@ -87,6 +87,10 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
 
 **Theme**: ${theme} (incorporate this theme in word problems and visual aids)
 
+⚠️  **CRITICAL COMPLIANCE NOTICE** ⚠️
+YOU MUST FOLLOW ALL REQUIREMENTS EXACTLY. NON-COMPLIANCE WILL RESULT IN REJECTION.
+Each requirement marked as "MANDATORY" or "FORBIDDEN" must be strictly enforced.
+
 **Requirements**:
 
 1. **Grade-Appropriate Content**:
@@ -166,6 +170,20 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
 - Escape special characters in strings
 - Keep visualAid simple: use only "type", "item", "count", "groups", "rows", "cols"
 - For large numbers (>12), omit visualAid entirely
+
+⚠️  **FINAL COMPLIANCE CHECK** ⚠️
+Before submitting your response, verify:
+${selectedTools.length > 0 ? `✓ AT LEAST 60% of problems use these tools: ${selectedTools.map(t => t.name).join(', ')}` : ''}
+${selectedStrategy ? `✓ AT LEAST 40% of problems use strategy: ${selectedStrategy.name}` : ''}
+${representationType === 'concrete' ? '✓ ALL problems use physical manipulatives/objects ONLY' : ''}
+${representationType === 'pictorial' ? '✓ ALL problems include visual diagrams/pictures' : ''}
+${representationType === 'abstract' ? '✓ ALL problems use numbers/symbols ONLY (NO visuals)' : ''}
+${scaffoldingLevel === 'none' ? '✓ NO hints or guidance provided' : ''}
+${scaffoldingLevel === 'guided' ? '✓ 70% of problems include helpful hints' : ''}
+${scaffoldingLevel === 'heavy' ? '✓ ALL complex problems broken into steps' : ''}
+${includeThinkingPrompts ? '✓ 60% of problems include "Explain Your Thinking" sections' : ''}
+
+🚨 FAILURE TO MEET THESE REQUIREMENTS WILL RESULT IN REJECTION 🚨
 
 Generate the complete worksheet now with ${problemCount} problems.`;
 }

@@ -14,8 +14,15 @@ export async function POST(request: NextRequest) {
       topic: body.topic || 'addition',
       difficulty: body.difficulty || 'easy',
       problemCount: body.problemCount || 5,
-      theme: body.theme || 'animals'
+      theme: body.theme || 'animals',
+      mathematicalTools: body.mathematicalTools || [],
+      problemSolvingStrategy: body.problemSolvingStrategy || 'none',
+      scaffoldingLevel: body.scaffoldingLevel || 'guided',
+      representationType: body.representationType || 'mixed',
+      includeThinkingPrompts: body.includeThinkingPrompts || false,
     };
+    
+    console.log('[Test] Enhanced parameters:', JSON.stringify(params, null, 2));
 
     console.log('[Test] Generating prompt...');
     const prompt = generateWorksheetPrompt(params);
@@ -42,12 +49,26 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      responseLength: responseText.length,
-      responsePreview: responseText.substring(0, 1000),
-      responseEnd: responseText.substring(Math.max(0, responseText.length - 500)),
-      hasJsonBlock: responseText.includes('```json'),
-      hasCodeBlock: responseText.includes('```'),
-      tokenUsage: message.usage
+      parameters: params,
+      prompt: {
+        preview: prompt.substring(0, 1500),
+        length: prompt.length,
+        analysis: {
+          hasToolInstructions: params.mathematicalTools?.length ? prompt.includes('Mathematical Tools') : false,
+          hasStrategyInstructions: params.problemSolvingStrategy !== 'none' ? prompt.includes('Problem-Solving Strategy') : false,
+          hasRepresentationInstructions: prompt.includes('Representation Focus'),
+          containsMandatory: prompt.includes('MANDATORY'),
+          containsCritical: prompt.includes('CRITICAL'),
+        }
+      },
+      claude: {
+        responseLength: responseText.length,
+        responsePreview: responseText.substring(0, 1000),
+        responseEnd: responseText.substring(Math.max(0, responseText.length - 500)),
+        hasJsonBlock: responseText.includes('```json'),
+        hasCodeBlock: responseText.includes('```'),
+        tokenUsage: message.usage
+      }
     });
 
   } catch (error) {

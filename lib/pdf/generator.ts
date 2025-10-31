@@ -15,11 +15,30 @@ export interface PDFGenerationOptions {
   }>;
   isAnswerKey?: boolean;
   standards?: string[];
+  // New pedagogical options for verification
+  selections?: {
+    mathematicalTools?: string[];
+    problemSolvingStrategy?: string;
+    scaffoldingLevel?: string;
+    representationType?: string;
+    includeThinkingPrompts?: boolean;
+    difficulty?: string;
+    theme?: string;
+  };
 }
 
 export async function generateWorksheetPDF(
   worksheet: WorksheetOutput,
-  isAnswerKey: boolean = false
+  isAnswerKey: boolean = false,
+  selections?: {
+    mathematicalTools?: string[];
+    problemSolvingStrategy?: string;
+    scaffoldingLevel?: string;
+    representationType?: string;
+    includeThinkingPrompts?: boolean;
+    difficulty?: string;
+    theme?: string;
+  }
 ): Promise<Buffer> {
   const options: PDFGenerationOptions = {
     title: worksheet.title,
@@ -33,6 +52,7 @@ export async function generateWorksheetPDF(
     })),
     isAnswerKey,
     standards: worksheet.metadata.standards,
+    selections: selections,
   };
 
   return createPDF(options);
@@ -72,6 +92,59 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       .font('Helvetica')
       .text(`Grade ${options.gradeLevel}`, { align: 'center' })
       .moveDown(0.5);
+
+    // Pedagogical Selections Summary Box (for verification)
+    if (!options.isAnswerKey && options.selections) {
+      const selectionBoxY = doc.y;
+      const selectionLines = [];
+      
+      if (options.selections.mathematicalTools?.length) {
+        selectionLines.push(`Tools: ${options.selections.mathematicalTools.join(', ')}`);
+      }
+      if (options.selections.problemSolvingStrategy && options.selections.problemSolvingStrategy !== 'none') {
+        selectionLines.push(`Strategy: ${options.selections.problemSolvingStrategy.replace(/_/g, ' ')}`);
+      }
+      if (options.selections.representationType) {
+        selectionLines.push(`Representation: ${options.selections.representationType}`);
+      }
+      if (options.selections.scaffoldingLevel) {
+        selectionLines.push(`Support: ${options.selections.scaffoldingLevel}`);
+      }
+      if (options.selections.includeThinkingPrompts) {
+        selectionLines.push('Thinking Prompts: Enabled');
+      }
+      
+      if (selectionLines.length > 0) {
+        const selectionBoxHeight = (selectionLines.length * 12) + 20;
+        const selectionBoxPadding = 8;
+        
+        // Draw selections box
+        doc
+          .rect(50, selectionBoxY, doc.page.width - 100, selectionBoxHeight)
+          .fillAndStroke('#fff3cd', '#ffeaa7')
+          .fillColor('#000');
+        
+        // Selections header
+        doc
+          .fontSize(10)
+          .font('Helvetica-Bold')
+          .fillColor('#856404')
+          .text('Pedagogical Selections:', 50 + selectionBoxPadding, selectionBoxY + selectionBoxPadding);
+        
+        // Selections list
+        doc
+          .fontSize(9)
+          .font('Helvetica')
+          .fillColor('#856404');
+          
+        selectionLines.forEach((line, index) => {
+          doc.text(`• ${line}`, 50 + selectionBoxPadding + 10, selectionBoxY + selectionBoxPadding + 15 + (index * 12));
+        });
+        
+        doc.y = selectionBoxY + selectionBoxHeight + 10;
+        doc.fillColor('#000');
+      }
+    }
 
     // Common Core Standards Box (prominent display on first page)
     if (!options.isAnswerKey && options.standards && options.standards.length > 0) {
