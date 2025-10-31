@@ -23,7 +23,7 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="max-w-[600px] text-base text-white/90 sm:text-lg md:text-xl drop-shadow-md">
-            Generate custom math worksheets fully aligned with <span className="font-semibold text-blue-200">Common Core State Standards (CCSS)</span> and <span className="font-semibold text-green-200">OSPI Learning Standards</span> - featuring research-based pedagogical tools and engaging themes for grades K-6
+            Generate custom math worksheets fully aligned with <span className="font-semibold text-blue-200">Common Core State Standards (CCSS)</span> - featuring research-based pedagogical tools and engaging themes for grades K-6, trusted by educators nationwide
           </p>
 
           {/* CTA Buttons */}
@@ -67,7 +67,7 @@ export default function Home() {
           </div>
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Common Core */}
+            {/* Common Core Standards */}
             <Card className="border-2 border-blue-200 bg-white hover:shadow-lg hover:scale-105 transition-all duration-200">
               <CardHeader className="space-y-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
@@ -75,24 +75,24 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <CardTitle className="text-lg sm:text-xl text-gray-900">Common Core State Standards (CCSS)</CardTitle>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Common Core State Standards</CardTitle>
                 <CardDescription className="text-sm text-gray-600">
-                  73+ standards across all K-6 mathematical domains including Operations & Algebraic Thinking, Number & Operations, Measurement & Data, and Geometry
+                  73+ standards across all K-6 mathematical domains including Operations & Algebraic Thinking, Number & Operations, Measurement & Data, and Geometry - adopted by 41+ states nationwide
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            {/* OSPI Standards */}
+            {/* Nationwide Coverage */}
             <Card className="border-2 border-green-200 bg-white hover:shadow-lg hover:scale-105 transition-all duration-200">
               <CardHeader className="space-y-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <CardTitle className="text-lg sm:text-xl text-gray-900">OSPI Learning Standards</CardTitle>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Nationwide Coverage</CardTitle>
                 <CardDescription className="text-sm text-gray-600">
-                  Washington State Office of Superintendent of Public Instruction approved mathematics learning standards for elementary grades
+                  Trusted by educators across the United States with curriculum-compliant worksheets that meet state and federal mathematics standards
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -107,7 +107,7 @@ export default function Home() {
                 </div>
                 <CardTitle className="text-lg sm:text-xl text-gray-900">Research-Based Tools</CardTitle>
                 <CardDescription className="text-sm text-gray-600">
-                  10+ mathematical tools including base ten blocks, ten frames, and visual models recommended by educational research
+                  10+ mathematical tools including base ten blocks, ten frames, and visual models recommended by educational research and best practices
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -125,13 +125,19 @@ export default function Home() {
               <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              OSPI Approved Methods
+              Nationwide Standards
             </div>
             <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-purple-700 shadow-md border border-purple-200">
               <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Research-Based Pedagogy
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-orange-700 shadow-md border border-orange-200">
+              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Educator Approved
             </div>
           </div>
         </div>
@@ -274,7 +280,7 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Standards Compliance</h3>
               <p className="text-sm text-gray-600">
-                Automatic alignment with state and federal standards. Every worksheet meets CCSS and OSPI requirements.
+                Automatic alignment with state and federal standards. Every worksheet meets Common Core State Standards and nationwide curriculum requirements.
               </p>
             </div>
             
