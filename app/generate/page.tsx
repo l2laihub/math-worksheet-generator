@@ -71,7 +71,7 @@ export default function GeneratePage() {
 
       const data = await response.json();
 
-      // Redirect to processing page
+      // Redirect to processing page (keep loading state during redirect)
       router.push(`/generate/${data.id}/processing`);
 
     } catch (error) {

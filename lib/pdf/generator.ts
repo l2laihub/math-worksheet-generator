@@ -72,25 +72,55 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       .moveDown(1.5);
 
     // Problems
-    const problemsPerColumn = options.isAnswerKey ? 10 : 5;
     const columnWidth = 250;
+    const maxVisualWidth = 220; // Reserve space for visuals
     const startX = 50;
-    let currentY = doc.y;
+    const pageBottom = doc.page.height - 100; // Leave margin at bottom
+    const columnStartY = doc.y;
+    
     let currentColumn = 0;
+    let column1Y = columnStartY; // Track Y position for column 1
+    let column2Y = columnStartY; // Track Y position for column 2
+    let problemsInCurrentColumn = 0;
 
     options.problems.forEach((problem, index) => {
-      // Check if we need a new page
-      if (index > 0 && index % (problemsPerColumn * 2) === 0) {
-        doc.addPage();
-        currentY = 50;
-        currentColumn = 0;
+      // Get current Y based on column
+      let currentY = currentColumn === 0 ? column1Y : column2Y;
+      
+      // Calculate space needed for this problem
+      let estimatedHeight = 80; // Base height for problem text and answer line
+      
+      // Add visual aid height if present
+      if (problem.visualAid && !options.isAnswerKey) {
+        try {
+          const pattern = convertToVisualPattern(problem.visualAid);
+          const dimensions = getPatternDimensions(pattern, maxVisualWidth);
+          estimatedHeight += dimensions.height + 20; // Add pattern height plus spacing
+        } catch {
+          estimatedHeight += 80; // Default visual height on error
+        }
       }
-      // Check if we need to switch columns
-      else if (index > 0 && index % problemsPerColumn === 0) {
-        currentColumn = 1;
-        currentY = 50;
+      
+      const totalNeeded = estimatedHeight;
+      
+      // Check if we need to switch columns or add a new page
+      if (currentY + totalNeeded > pageBottom) {
+        if (currentColumn === 0) {
+          // Switch to second column
+          currentColumn = 1;
+          currentY = column2Y;
+          problemsInCurrentColumn = 0;
+        } else {
+          // Need a new page
+          doc.addPage();
+          column1Y = doc.y;
+          column2Y = doc.y;
+          currentColumn = 0;
+          currentY = column1Y;
+          problemsInCurrentColumn = 0;
+        }
       }
-
+      
       const x = startX + currentColumn * (columnWidth + 50);
       doc.x = x;
       doc.y = currentY;
@@ -107,7 +137,7 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
         .fontSize(11)
         .font('Helvetica')
         .text(problem.question, x + 20, currentY, {
-          width: columnWidth - 20,
+          width: Math.min(columnWidth - 20, maxVisualWidth),
           align: 'left',
         });
 
@@ -120,10 +150,10 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
           const pattern = convertToVisualPattern(problem.visualAid);
 
           // Get pattern dimensions to reserve space
-          const dimensions = getPatternDimensions(pattern);
+          const dimensions = getPatternDimensions(pattern, maxVisualWidth);
 
-          // Render the visual pattern
-          VisualPatternRenderer.render(doc as any, pattern, x + 20, currentY);
+          // Render the visual pattern with width constraint
+          VisualPatternRenderer.render(doc as any, pattern, x + 20, currentY, maxVisualWidth);
 
           // Update currentY based on pattern height
           currentY += dimensions.height + 10;
@@ -131,7 +161,7 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
           console.error('Error rendering visual aid:', error);
           // Fallback to text placeholder
           doc.fontSize(9).fillColor('#666').text('[Visual Aid]', x + 20, currentY, {
-            width: columnWidth - 20,
+            width: maxVisualWidth,
           });
           currentY = doc.y + 5;
         }
@@ -143,7 +173,7 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
           .fontSize(10)
           .fillColor('#000')
           .text('Answer: ___________', x + 20, currentY, {
-            width: columnWidth - 20,
+            width: maxVisualWidth,
           });
         currentY = doc.y + 20;
       }
@@ -167,14 +197,21 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             .fillColor('#666')
             .text('Solution: ', x + 20, currentY, { continued: true })
             .text(problem.solution, {
-              width: columnWidth - 20,
+              width: maxVisualWidth,
             });
           currentY = doc.y + 10;
         }
       }
 
-      // Update currentY for next problem
+      // Update currentY for next problem and save to appropriate column
       currentY += 5;
+      problemsInCurrentColumn++;
+      
+      if (currentColumn === 0) {
+        column1Y = currentY;
+      } else {
+        column2Y = currentY;
+      }
     });
 
     // Footer - add page numbers to all pages

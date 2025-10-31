@@ -55,8 +55,47 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Generate worksheet content using Claude
-    console.log('[Generate] Calling Claude API...', { generationId, params });
+    // Return immediately with generation ID
+    const immediateResponse = NextResponse.json({ 
+      id: generationId,
+      status: 'pending' 
+    }, { status: 202 });
+
+    // Start async generation process (don't await)
+    processGenerationAsync(generationId, params).catch(error => {
+      console.error('[Generate] Async generation failed:', error);
+    });
+
+    return immediateResponse;
+  } catch (error) {
+    console.error('[Generate] Error:', error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          error: 'Validation error',
+          details: error.issues,
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: 'Failed to generate worksheet',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Process worksheet generation asynchronously
+ */
+async function processGenerationAsync(generationId: string, params: any) {
+  try {
+    console.log('[Generate] Starting async generation...', { generationId, params });
 
     const prompt = generateWorksheetPrompt({
       gradeLevel: params.gradeLevel,
@@ -90,7 +129,13 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate worksheet data
     const worksheetData = parseWorksheetResponse(responseText);
-    const validation = validateWorksheet(worksheetData, params);
+    const validation = validateWorksheet(worksheetData, {
+      gradeLevel: params.gradeLevel,
+      topic: params.topic,
+      difficulty: params.difficulty,
+      problemCount: params.problemCount,
+      theme: params.visualTheme,
+    });
 
     if (!validation.valid) {
       console.error('[Generate] Worksheet validation failed', {
@@ -98,13 +143,13 @@ export async function POST(request: NextRequest) {
         errors: validation.errors,
       });
 
-      return NextResponse.json(
-        {
-          error: 'Generated worksheet failed validation',
-          details: validation.errors,
-        },
-        { status: 500 }
-      );
+      // Update database with failed status
+      await prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'failed' },
+      });
+
+      return; // Exit async function
     }
 
     console.log('[Generate] Worksheet validated successfully', {
@@ -151,35 +196,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const response: GenerateWorksheetResponse = {
-      id: generationId,
-      status: 'completed',
-      worksheetUrl: worksheetUpload.url,
-      answerKeyUrl: answerKeyUpload.url,
-    };
+    console.log('[Generate] Async generation completed', { generationId });
 
-    console.log('[Generate] Generation completed', { generationId });
-
-    return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error('[Generate] Error:', error);
+    console.error('[Generate] Async generation error:', error);
 
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          details: error.issues,
-        },
-        { status: 400 }
-      );
+    // Update database with failed status
+    try {
+      await prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'failed' },
+      });
+    } catch (dbError) {
+      console.error('[Generate] Failed to update database with error status:', dbError);
     }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to generate worksheet',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
   }
 }

@@ -65,15 +65,24 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
    - Include at least 2-3 word problems using the "${theme}" theme
    - Vary problem formats to maintain engagement
 
-3. **Visual Aids** (IMPORTANT):
+3. **Visual Aids** (SIMPLE RULES):
    - For grades 1-3: Include visual aids for 60-80% of problems
    - For grades 4-6: Include visual aids for 30-50% of problems
-   - Available visual types:
-     * countable_objects: For counting problems (e.g., "How many apples?")
-     * grouped_objects: For addition (e.g., "3 cats + 4 cats")
-     * array: For multiplication (e.g., rows × columns)
-     * number_line: For number operations and sequences
-     * fraction_circle: For fraction problems
+   
+   **VISUAL AID RULES:**
+   - **Only add visualAid for numbers ≤ 12**
+   - **For numbers > 12: omit visualAid completely**
+   - **Use simple structures only**
+   
+   **Available visual types:**
+   - countable_objects: For counting (count ≤ 12)
+     \`"visualAid": { "type": "countable_objects", "item": "apple", "count": 7 }\`
+   
+   - grouped_objects: For addition/subtraction (total ≤ 12)  
+     \`"visualAid": { "type": "grouped_objects", "groups": [{"item": "cat", "count": 3}, {"item": "cat", "count": 4}] }\`
+   
+   - array: For small multiplication (rows × cols ≤ 12)
+     \`"visualAid": { "type": "array", "item": "star", "rows": 3, "cols": 4 }\`
 
    - Available theme items: ${getThemeItems(theme)}
 
@@ -84,7 +93,7 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
 5. **Common Core Standards**:
    - List the specific standards addressed (e.g., "CCSS.MATH.CONTENT.2.OA.A.1")
 
-**Output Format** (JSON):
+**Output Format** (JSON - MUST be valid JSON):
 \`\`\`json
 {
   "title": "Grade ${gradeLevel} ${topic} Practice",
@@ -109,10 +118,18 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
     "topic": "${topic}",
     "difficulty": "${difficulty}",
     "theme": "${theme}",
-    "standards": ["CCSS.MATH.CONTENT.X.X.X"]
+    "standards": ["CCSS.MATH.CONTENT.1.OA.A.1"]
   }
 }
 \`\`\`
+
+**CRITICAL JSON RULES:**
+- Use double quotes for all strings
+- No trailing commas
+- No comments in JSON
+- Escape special characters in strings
+- Keep visualAid simple: use only "type", "item", "count", "groups", "rows", "cols"
+- For large numbers (>12), omit visualAid entirely
 
 Generate the complete worksheet now with ${problemCount} problems.`;
 }
@@ -135,10 +152,19 @@ function getThemeItems(theme: string): string {
 export function parseWorksheetResponse(response: string): WorksheetOutput {
   // Extract JSON from markdown code blocks if present
   const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || response.match(/```\s*([\s\S]*?)\s*```/);
-  const jsonStr = jsonMatch ? jsonMatch[1] : response;
+  let jsonStr = jsonMatch ? jsonMatch[1] : response;
 
   try {
-    const parsed = JSON.parse(jsonStr.trim());
+    // Clean up common JSON issues
+    jsonStr = jsonStr.trim()
+      .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Quote unquoted keys
+      .replace(/:\s*'([^']*?)'/g, ': "$1"') // Replace single quotes with double quotes
+      .replace(/\n/g, ' ') // Remove newlines that might break JSON
+      .replace(/\t/g, ' ') // Remove tabs
+      .replace(/\s+/g, ' '); // Normalize whitespace
+
+    const parsed = JSON.parse(jsonStr);
 
     // Validate structure
     if (!parsed.problems || !Array.isArray(parsed.problems)) {
@@ -148,6 +174,52 @@ export function parseWorksheetResponse(response: string): WorksheetOutput {
     return parsed as WorksheetOutput;
   } catch (error) {
     console.error('Failed to parse worksheet response:', error);
+    console.error('JSON string attempted:', jsonStr.substring(0, 500) + '...');
+    
+    // Try to recover by creating a minimal structure
+    try {
+      const lines = response.split('\n');
+      const problems = [];
+      let currentProblem: any = null;
+      let problemCounter = 1;
+
+      for (const line of lines) {
+        if (line.match(/^\s*\d+\./)) {
+          // Start of a new problem
+          if (currentProblem) {
+            problems.push(currentProblem);
+          }
+          currentProblem = {
+            id: problemCounter++,
+            question: line.replace(/^\s*\d+\.\s*/, '').trim(),
+            answer: "Answer needed",
+            workingSpace: true
+          };
+        }
+      }
+      
+      if (currentProblem) {
+        problems.push(currentProblem);
+      }
+
+      if (problems.length > 0) {
+        return {
+          title: "Math Practice Worksheet",
+          instructions: "Solve each problem. Show your work!",
+          problems,
+          metadata: {
+            gradeLevel: 4,
+            topic: "Math Practice",
+            difficulty: "medium",
+            theme: "general",
+            standards: ["CCSS.MATH"]
+          }
+        };
+      }
+    } catch (recoveryError) {
+      console.error('Recovery parsing also failed:', recoveryError);
+    }
+    
     throw new Error('Failed to parse Claude response. Invalid JSON format.');
   }
 }
