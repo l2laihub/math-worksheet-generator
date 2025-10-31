@@ -13,6 +13,19 @@ export default async function SuccessPage({ params }: SuccessPageProps) {
 
   const generation = await prisma.generation.findUnique({
     where: { id },
+    select: {
+      id: true,
+      status: true,
+      gradeLevel: true,
+      topic: true,
+      difficulty: true,
+      problemCount: true,
+      visualTheme: true,
+      worksheetPdfUrl: true,
+      answerKeyPdfUrl: true,
+      tokenUsage: true,
+      createdAt: true,
+    },
   });
 
   if (!generation) {
