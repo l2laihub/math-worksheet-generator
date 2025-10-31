@@ -52,7 +52,8 @@
       "Bash(do taskkill //F //PID $pid)",
       "Bash(done)",
       "Bash(tasklist:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

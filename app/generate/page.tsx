@@ -139,7 +139,7 @@ export default function GeneratePage() {
                           value={field.value.toString()}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-12 transition-all hover:border-primary">
+                            <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
                               <SelectValue placeholder="Select grade level" />
                             </SelectTrigger>
                           </FormControl>
@@ -165,7 +165,7 @@ export default function GeneratePage() {
                         <FormLabel className="text-base font-semibold text-gray-900">📖 Topic</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-12 transition-all hover:border-primary">
+                            <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
                               <SelectValue placeholder="Select a topic" />
                             </SelectTrigger>
                           </FormControl>
@@ -272,8 +272,8 @@ export default function GeneratePage() {
                   control={form.control}
                   name="visualTheme"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-semibold text-gray-900">🎨 Visual Theme</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="block text-base font-semibold text-gray-900 mb-3">🎨 Visual Theme</FormLabel>
                       <FormControl>
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                           {THEMES.map((theme) => (
