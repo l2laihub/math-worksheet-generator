@@ -15,6 +15,8 @@ export async function GET(
         status: true,
         worksheetPdfUrl: true,
         answerKeyPdfUrl: true,
+        errorMessage: true,
+        createdAt: true,
       },
     });
 

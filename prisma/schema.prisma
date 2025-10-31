@@ -33,6 +33,7 @@ model Generation {
   answerKeyPdfUrl String?  @map("answer_key_pdf_url")
   tokenUsage      Int?     @map("token_usage")
   status          String   @default("pending")
+  errorMessage    String?  @map("error_message")
   createdAt       DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)

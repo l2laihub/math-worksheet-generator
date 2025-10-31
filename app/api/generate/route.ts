@@ -94,9 +94,22 @@ export async function POST(request: NextRequest) {
  * Process worksheet generation asynchronously
  */
 async function processGenerationAsync(generationId: string, params: any) {
+  let currentStep = 'initialization';
+  
   try {
     console.log('[Generate] Starting async generation...', { generationId, params });
 
+    // Step 1: Validate environment variables
+    currentStep = 'environment_validation';
+    const requiredEnvVars = ['ANTHROPIC_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY'];
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    if (missingVars.length > 0) {
+      throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
+    }
+    console.log('[Generate] Environment variables validated', { generationId });
+
+    // Step 2: Generate prompt
+    currentStep = 'prompt_generation';
     const prompt = generateWorksheetPrompt({
       gradeLevel: params.gradeLevel,
       topic: params.topic,
@@ -104,7 +117,12 @@ async function processGenerationAsync(generationId: string, params: any) {
       problemCount: params.problemCount,
       theme: params.visualTheme,
     });
+    console.log('[Generate] Prompt generated', { generationId, promptLength: prompt.length });
 
+    // Step 3: Call Claude API
+    currentStep = 'claude_api_call';
+    console.log('[Generate] Calling Claude API...', { generationId });
+    
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
@@ -116,7 +134,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       ],
     });
 
-    // Extract text content from Claude's response
+    // Step 4: Extract response text
+    currentStep = 'response_extraction';
     const responseText = message.content
       .filter((block) => block.type === 'text')
       .map((block) => ('text' in block ? block.text : ''))
@@ -125,10 +144,22 @@ async function processGenerationAsync(generationId: string, params: any) {
     console.log('[Generate] Claude response received', {
       generationId,
       responseLength: responseText.length,
+      tokenUsage: message.usage,
     });
 
-    // Parse and validate worksheet data
+    // Step 5: Parse worksheet response
+    currentStep = 'response_parsing';
+    console.log('[Generate] Parsing worksheet response...', { generationId });
+    
     const worksheetData = parseWorksheetResponse(responseText);
+    console.log('[Generate] Response parsed successfully', {
+      generationId,
+      problemCount: worksheetData.problems?.length || 0,
+      title: worksheetData.title
+    });
+
+    // Step 6: Validate worksheet
+    currentStep = 'worksheet_validation';
     const validation = validateWorksheet(worksheetData, {
       gradeLevel: params.gradeLevel,
       topic: params.topic,
@@ -138,18 +169,21 @@ async function processGenerationAsync(generationId: string, params: any) {
     });
 
     if (!validation.valid) {
+      const errorMsg = `Worksheet validation failed: ${validation.errors.join(', ')}`;
       console.error('[Generate] Worksheet validation failed', {
         generationId,
         errors: validation.errors,
       });
 
-      // Update database with failed status
       await prisma.generation.update({
         where: { id: generationId },
-        data: { status: 'failed' },
+        data: { 
+          status: 'failed',
+          errorMessage: errorMsg
+        },
       });
 
-      return; // Exit async function
+      return;
     }
 
     console.log('[Generate] Worksheet validated successfully', {
@@ -157,7 +191,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       problemCount: worksheetData.problems.length,
     });
 
-    // Generate PDFs (worksheet and answer key)
+    // Step 7: Generate PDFs
+    currentStep = 'pdf_generation';
     console.log('[Generate] Generating PDFs...', { generationId });
 
     const [worksheetBuffer, answerKeyBuffer] = await Promise.all([
@@ -171,7 +206,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       answerKeySize: answerKeyBuffer.length,
     });
 
-    // Upload PDFs to Supabase Storage
+    // Step 8: Upload PDFs
+    currentStep = 'pdf_upload';
     console.log('[Generate] Uploading PDFs...', { generationId });
 
     const [worksheetUpload, answerKeyUpload] = await Promise.all([
@@ -185,7 +221,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       answerKeyUrl: answerKeyUpload.url,
     });
 
-    // Update database record with status 'completed' and URLs
+    // Step 9: Update database with completion
+    currentStep = 'database_completion_update';
     await prisma.generation.update({
       where: { id: generationId },
       data: {
@@ -193,22 +230,36 @@ async function processGenerationAsync(generationId: string, params: any) {
         worksheetPdfUrl: worksheetUpload.url,
         answerKeyPdfUrl: answerKeyUpload.url,
         tokenUsage: message.usage.input_tokens + message.usage.output_tokens,
+        errorMessage: null, // Clear any previous error
       },
     });
 
-    console.log('[Generate] Async generation completed', { generationId });
+    console.log('[Generate] Async generation completed successfully', { generationId });
 
   } catch (error) {
-    console.error('[Generate] Async generation error:', error);
+    const errorMsg = `Failed at step '${currentStep}': ${error instanceof Error ? error.message : 'Unknown error'}`;
+    console.error('[Generate] Async generation error:', {
+      generationId,
+      currentStep,
+      error: errorMsg,
+      stack: error instanceof Error ? error.stack : undefined
+    });
 
-    // Update database with failed status
+    // Update database with failed status and detailed error
     try {
       await prisma.generation.update({
         where: { id: generationId },
-        data: { status: 'failed' },
+        data: { 
+          status: 'failed',
+          errorMessage: errorMsg
+        },
       });
+      console.log('[Generate] Database updated with error status', { generationId });
     } catch (dbError) {
-      console.error('[Generate] Failed to update database with error status:', dbError);
+      console.error('[Generate] Failed to update database with error status:', {
+        generationId,
+        dbError: dbError instanceof Error ? dbError.message : 'Unknown DB error'
+      });
     }
   }
 }
