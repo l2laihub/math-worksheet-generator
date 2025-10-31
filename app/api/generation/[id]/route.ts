@@ -15,7 +15,7 @@ export async function GET(
         status: true,
         worksheetPdfUrl: true,
         answerKeyPdfUrl: true,
-        // errorMessage: true, // TODO: Enable after database migration
+        errorMessage: true,
         createdAt: true,
       },
     });

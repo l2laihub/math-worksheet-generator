@@ -178,8 +178,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       await prisma.generation.update({
         where: { id: generationId },
         data: { 
-          status: 'failed'
-          // TODO: Add errorMessage field after database migration
+          status: 'failed',
+          errorMessage: errorMsg
         },
       });
 
@@ -229,8 +229,8 @@ async function processGenerationAsync(generationId: string, params: any) {
         status: 'completed',
         worksheetPdfUrl: worksheetUpload.url,
         answerKeyPdfUrl: answerKeyUpload.url,
-        tokenUsage: message.usage.input_tokens + message.usage.output_tokens
-        // TODO: Add errorMessage: null after database migration
+        tokenUsage: message.usage.input_tokens + message.usage.output_tokens,
+        errorMessage: null // Clear any previous error
       },
     });
 
@@ -250,8 +250,8 @@ async function processGenerationAsync(generationId: string, params: any) {
       await prisma.generation.update({
         where: { id: generationId },
         data: { 
-          status: 'failed'
-          // TODO: Add errorMessage field after database migration
+          status: 'failed',
+          errorMessage: errorMsg
         },
       });
       console.log('[Generate] Database updated with error status', { generationId });
