@@ -229,7 +229,7 @@ export class VisualPatternRenderer {
 
       // Draw filled slice
       doc.save();
-      doc
+      (doc as any)
         .moveTo(centerX, centerY)
         .lineTo(x1, y1)
         .arc(centerX, centerY, radius, startAngle, endAngle)

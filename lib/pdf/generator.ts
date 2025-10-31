@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
-import { WorksheetOutput, VisualAid } from '@/types/worksheet';
+import type { WorksheetOutput } from '@/lib/prompts/worksheet-generator';
+import type { VisualAid } from '@/types/worksheet';
+import { VisualPatternRenderer, getPatternDimensions, type VisualPattern } from './visual-patterns';
 
 export interface PDFGenerationOptions {
   title: string;
@@ -19,14 +21,14 @@ export async function generateWorksheetPDF(
   isAnswerKey: boolean = false
 ): Promise<Buffer> {
   const options: PDFGenerationOptions = {
-    title: worksheet.metadata.title,
+    title: worksheet.title,
     gradeLevel: worksheet.metadata.gradeLevel,
     problems: worksheet.problems.map((p, idx) => ({
       number: idx + 1,
       question: p.question,
       visualAid: p.visualAid,
-      answer: isAnswerKey ? p.answer : undefined,
-      solution: isAnswerKey ? p.solution : undefined,
+      answer: isAnswerKey ? String(p.answer) : undefined,
+      solution: undefined, // WorksheetProblem doesn't have solution field
     })),
     isAnswerKey,
   };
@@ -111,12 +113,28 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
 
       currentY = doc.y + 5;
 
-      // Visual aid placeholder (if not answer key)
+      // Visual aid rendering (if not answer key)
       if (problem.visualAid && !options.isAnswerKey) {
-        doc.fontSize(9).fillColor('#666').text('[Visual Aid]', x + 20, currentY, {
-          width: columnWidth - 20,
-        });
-        currentY = doc.y + 5;
+        try {
+          // Convert VisualAid to VisualPattern
+          const pattern = convertToVisualPattern(problem.visualAid);
+
+          // Get pattern dimensions to reserve space
+          const dimensions = getPatternDimensions(pattern);
+
+          // Render the visual pattern
+          VisualPatternRenderer.render(doc as any, pattern, x + 20, currentY);
+
+          // Update currentY based on pattern height
+          currentY += dimensions.height + 10;
+        } catch (error) {
+          console.error('Error rendering visual aid:', error);
+          // Fallback to text placeholder
+          doc.fontSize(9).fillColor('#666').text('[Visual Aid]', x + 20, currentY, {
+            width: columnWidth - 20,
+          });
+          currentY = doc.y + 5;
+        }
       }
 
       // Answer space (if not answer key)
@@ -186,4 +204,12 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
 
     doc.end();
   });
+}
+
+/**
+ * Convert VisualAid to VisualPattern
+ * The types are compatible but need to be cast properly
+ */
+function convertToVisualPattern(visualAid: VisualAid): VisualPattern {
+  return visualAid as unknown as VisualPattern;
 }

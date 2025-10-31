@@ -13,7 +13,7 @@ const GenerateWorksheetSchema = z.object({
   topic: z.string().min(1).max(100),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   problemCount: z.number().int().min(5).max(20),
-  theme: z.enum(['animals', 'space', 'sports', 'food', 'nature']),
+  visualTheme: z.enum(['animals', 'space', 'food', 'nature', 'other']),
 });
 
 // Initialize Anthropic client
@@ -31,13 +31,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Invalid request parameters',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );
     }
 
-    const params = validationResult.data as GenerateWorksheetRequest;
+    const params = validationResult.data;
 
     // Generate unique ID for this generation
     const generationId = crypto.randomUUID();
@@ -50,9 +50,7 @@ export async function POST(request: NextRequest) {
         topic: params.topic,
         difficulty: params.difficulty,
         problemCount: params.problemCount,
-        theme: params.theme,
-        worksheetUrl: '',
-        answerKeyUrl: '',
+        visualTheme: params.visualTheme,
         status: 'pending',
       },
     });
@@ -65,7 +63,7 @@ export async function POST(request: NextRequest) {
       topic: params.topic,
       difficulty: params.difficulty,
       problemCount: params.problemCount,
-      theme: params.theme,
+      theme: params.visualTheme,
     });
 
     const message = await anthropic.messages.create({
@@ -147,8 +145,9 @@ export async function POST(request: NextRequest) {
       where: { id: generationId },
       data: {
         status: 'completed',
-        worksheetUrl: worksheetUpload.url,
-        answerKeyUrl: answerKeyUpload.url,
+        worksheetPdfUrl: worksheetUpload.url,
+        answerKeyPdfUrl: answerKeyUpload.url,
+        tokenUsage: message.usage.input_tokens + message.usage.output_tokens,
       },
     });
 
@@ -169,7 +168,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation error',
-          details: error.errors,
+          details: error.issues,
         },
         { status: 400 }
       );

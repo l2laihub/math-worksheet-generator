@@ -40,7 +40,19 @@
       "Bash(node test-db-connection.js:*)",
       "Bash(npm run prisma:generate:*)",
       "Bash(npx:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm run lint)",
+      "Bash(xargs kill:*)",
+      "Bash(powershell -File:*)",
+      "Bash(export WATCHPACK_POLLING=true)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)",
+      "Bash(WATCHPACK_POLLING=true npm run dev:*)",
+      "Bash(while read pid)",
+      "Bash(do taskkill //F //PID $pid)",
+      "Bash(done)",
+      "Bash(tasklist:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
