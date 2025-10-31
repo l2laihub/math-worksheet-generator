@@ -60,7 +60,8 @@
       "mcp__supabase__apply_migration",
       "mcp__supabase__execute_sql",
       "mcp__supabase__get_logs",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(rg:*)"
     ],
     "deny": [],
     "ask": []

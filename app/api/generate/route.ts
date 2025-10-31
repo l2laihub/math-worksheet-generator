@@ -14,6 +14,11 @@ const GenerateWorksheetSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']),
   problemCount: z.number().int().min(5).max(20),
   visualTheme: z.enum(['animals', 'space', 'food', 'nature', 'other']),
+  mathematicalTools: z.array(z.string()).optional(),
+  problemSolvingStrategy: z.string().optional(),
+  scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
+  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
+  includeThinkingPrompts: z.boolean().optional(),
 });
 
 // Initialize Anthropic client
@@ -116,6 +121,11 @@ async function processGenerationAsync(generationId: string, params: any) {
       difficulty: params.difficulty,
       problemCount: params.problemCount,
       theme: params.visualTheme,
+      mathematicalTools: params.mathematicalTools,
+      problemSolvingStrategy: params.problemSolvingStrategy,
+      scaffoldingLevel: params.scaffoldingLevel,
+      representationType: params.representationType,
+      includeThinkingPrompts: params.includeThinkingPrompts,
     });
     console.log('[Generate] Prompt generated', { generationId, promptLength: prompt.length });
 

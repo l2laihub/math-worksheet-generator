@@ -90,7 +90,7 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
         .fontSize(10)
         .font('Helvetica-Bold')
         .fillColor('#1e40af')
-        .text('📋 Common Core Standards Covered:', 50 + boxPadding, boxY + boxPadding);
+        .text('Common Core Standards Covered:', 50 + boxPadding, boxY + boxPadding);
       
       // Standards list
       const standardsText = options.standards.map(code => {

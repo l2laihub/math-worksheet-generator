@@ -4,6 +4,8 @@
  */
 
 import { TOPICS } from '@/lib/constants/topics';
+import { MATHEMATICAL_TOOLS, PROBLEM_SOLVING_STRATEGIES, type ToolDefinition, type StrategyDefinition } from '@/lib/constants/pedagogical-tools';
+import type { MathematicalTool, ProblemSolvingStrategy, ScaffoldingLevel, RepresentationType } from '@/types/worksheet';
 
 export interface WorksheetParams {
   gradeLevel: number; // 1-6
@@ -11,6 +13,11 @@ export interface WorksheetParams {
   difficulty: 'easy' | 'medium' | 'hard';
   problemCount: number; // 5-20
   theme: string; // animals, space, sports, food, nature
+  mathematicalTools?: MathematicalTool[];
+  problemSolvingStrategy?: ProblemSolvingStrategy;
+  scaffoldingLevel?: ScaffoldingLevel;
+  representationType?: RepresentationType;
+  includeThinkingPrompts?: boolean;
 }
 
 export interface WorksheetProblem {
@@ -47,13 +54,32 @@ export interface WorksheetOutput {
 }
 
 export function generateWorksheetPrompt(params: WorksheetParams): string {
-  const { gradeLevel, topic, difficulty, problemCount, theme } = params;
+  const { 
+    gradeLevel, 
+    topic, 
+    difficulty, 
+    problemCount, 
+    theme,
+    mathematicalTools = [],
+    problemSolvingStrategy,
+    scaffoldingLevel = 'guided',
+    representationType = 'mixed',
+    includeThinkingPrompts = false
+  } = params;
   
   // Get topic standards from topics list
   const topicData = TOPICS.find(t => t.id === topic);
   const relevantStandards = topicData?.standards?.filter(std => 
     std.includes(`.${gradeLevel}.`) || std.includes(`.K.`)
   ) || [];
+
+  // Get selected tools and strategies
+  const selectedTools = mathematicalTools.map(toolId => 
+    MATHEMATICAL_TOOLS.find(tool => tool.id === toolId)
+  ).filter(Boolean) as ToolDefinition[];
+  
+  const selectedStrategy = problemSolvingStrategy && problemSolvingStrategy !== 'none' ? 
+    PROBLEM_SOLVING_STRATEGIES.find(strategy => strategy.id === problemSolvingStrategy) || null : null;
 
   return `You are a math education expert creating a worksheet for Grade ${gradeLevel} students.
 
@@ -71,7 +97,7 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
 2. **Problem Variety**:
    - Mix computation problems with word problems
    - Include at least 2-3 word problems using the "${theme}" theme
-   - Vary problem formats to maintain engagement
+   - Vary problem formats to maintain engagement${generateToolInstructions(selectedTools)}${generateStrategyInstructions(selectedStrategy)}${generateScaffoldingInstructions(scaffoldingLevel)}${generateRepresentationInstructions(representationType)}${generateThinkingPromptsInstructions(includeThinkingPrompts)}
 
 3. **Visual Aids** (SIMPLE RULES):
    - For grades 1-3: Include visual aids for 60-80% of problems
@@ -82,7 +108,7 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
    - **For numbers > 12: omit visualAid completely**
    - **Use simple structures only**
    
-   **Available visual types:**
+   **Available visual types:**${generateVisualAidInstructions(selectedTools)}
    - countable_objects: For counting (count ≤ 12)
      \`"visualAid": { "type": "countable_objects", "item": "apple", "count": 7 }\`
    
@@ -275,4 +301,184 @@ export function validateWorksheet(worksheet: WorksheetOutput, params: WorksheetP
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Generate tool-specific instructions for the prompt
+ */
+function generateToolInstructions(selectedTools: ToolDefinition[]): string {
+  if (selectedTools.length === 0) return '';
+  
+  const toolNames = selectedTools.map(tool => tool.name).join(', ');
+  const toolInstructions = selectedTools.map(tool => `   - ${tool.name}: ${tool.description}`).join('\n');
+  
+  return `
+
+3. **Mathematical Tools** (MANDATORY FOCUS):
+   **CRITICAL**: Design problems specifically for these tools: ${toolNames}
+   
+${toolInstructions}
+   
+   **Tool Integration Requirements**:
+   - AT LEAST 60% of problems must explicitly use these selected tools
+   - Include tool-specific visual aids when numbers allow (≤ 12)
+   - Reference tools directly in problem instructions: "Use base ten blocks to solve..."
+   - Design problems that REQUIRE these tools for optimal solution
+   - Make tools central to the problem-solving process, not optional`;
+}
+
+/**
+ * Generate strategy-specific instructions for the prompt
+ */
+function generateStrategyInstructions(selectedStrategy: StrategyDefinition | null): string {
+  if (!selectedStrategy) return '';
+  
+  return `
+
+4. **Problem-Solving Strategy** (MANDATORY: ${selectedStrategy.name}):
+   ${selectedStrategy.description}
+   
+   **Strategy Implementation Requirements**:
+   - AT LEAST 40% of problems must be specifically designed for this strategy
+   - Add explicit strategy instruction: "${selectedStrategy.instruction}"
+   - Design problems that REQUIRE this strategy for optimal solution
+   - Include strategy-specific wording in problem statements
+   - Make the strategy the primary approach, not just a suggestion`;
+}
+
+/**
+ * Generate scaffolding-specific instructions
+ */
+function generateScaffoldingInstructions(scaffoldingLevel: ScaffoldingLevel): string {
+  const instructions = {
+    none: `
+
+5. **Support Level - Independent** (MANDATORY):
+   **CRITICAL**: Provide minimal support only:
+   - NO hints, prompts, or guidance
+   - Students must work completely independently
+   - Use only clear, direct problem statements
+   - NO "Think about..." or helper text
+   - Problems should be straightforward and self-contained`,
+    
+    guided: `
+
+5. **Support Level - Guided Practice** (MANDATORY):
+   **CRITICAL**: Provide moderate scaffolding for ALL problems:
+   - Include helpful hints for 70% of problems
+   - Add "Think about..." or "Remember..." cues throughout
+   - Provide guiding questions for multi-step problems
+   - Show one example solution method at the beginning
+   - Use supportive language: "Can you...", "Try to..."`,
+    
+    heavy: `
+
+5. **Support Level - Heavily Supported** (MANDATORY):
+   **CRITICAL**: Provide maximum scaffolding for ALL problems:
+   - Include step-by-step guidance for every complex problem
+   - Add multiple hints and scaffolding questions
+   - Break ALL multi-step problems into smaller parts
+   - Include worked examples and think-aloud prompts
+   - Use very supportive language: "First, try...", "Next, you can...", "Remember that..."`
+  };
+  
+  return instructions[scaffoldingLevel];
+}
+
+/**
+ * Generate representation type instructions
+ */
+function generateRepresentationInstructions(representationType: RepresentationType): string {
+  const instructions = {
+    concrete: `
+
+6. **Representation Focus - Concrete** (MANDATORY):
+   **CRITICAL**: ALL problems must use concrete, hands-on approaches ONLY:
+   - Every problem must reference physical manipulatives (blocks, counters, toys)
+   - Use ONLY countable objects students can physically handle
+   - NO abstract numbers without concrete context
+   - NO pure computation problems - everything must relate to real objects
+   - Word problems must focus on tangible items: "Count the bears", "Group the blocks"
+   - Examples: "Use 12 teddy bears to make 3 equal groups" NOT "12 ÷ 3 = ?"`,
+    
+    pictorial: `
+
+6. **Representation Focus - Pictorial** (MANDATORY):
+   **CRITICAL**: ALL problems must use visual/pictorial approaches ONLY:
+   - Every problem must include or reference pictures, diagrams, or visual models
+   - NO pure number computation without visual support
+   - NO abstract symbolic work - everything must be visual
+   - Use charts, drawings, visual patterns, and graphic organizers
+   - Word problems must focus on visual elements: "Look at the picture", "Draw a diagram"
+   - Examples: "Draw circles to show 4 × 3" NOT "What is 4 × 3?"`,
+    
+    abstract: `
+
+6. **Representation Focus - Abstract** (MANDATORY):
+   **CRITICAL**: ALL problems must use abstract/symbolic approaches ONLY:
+   - Focus exclusively on numbers, symbols, and mathematical notation
+   - NO visual aids, pictures, or concrete references
+   - NO manipulative references - pure computational focus
+   - Use equations, number relationships, and mathematical symbols
+   - Problems should be computation-focused: "Calculate", "Solve", "Find"
+   - Examples: "7 × 8 = ?" or "What number makes 24 ÷ ? = 6?" NOT story problems`,
+    
+    mixed: `
+
+6. **Representation Focus - Mixed**:
+   - Combine concrete, pictorial, and abstract approaches across different problems
+   - Include some concrete problems (with manipulatives)
+   - Include some pictorial problems (with visual aids) 
+   - Include some abstract problems (pure computation)
+   - Progress from concrete to abstract within the problem set when possible`
+  };
+  
+  return instructions[representationType];
+}
+
+/**
+ * Generate thinking prompts instructions
+ */
+function generateThinkingPromptsInstructions(includeThinkingPrompts: boolean): string {
+  if (!includeThinkingPrompts) return '';
+  
+  return `
+
+7. **Thinking Prompts** (MANDATORY):
+   **CRITICAL**: Include metacognitive reflection for ALL complex problems:
+   - Add "Explain Your Thinking" sections to 60% of problems
+   - Include specific prompts after each multi-step problem:
+     * "How did you solve this problem? Show your steps."
+     * "Explain your thinking using words, numbers, or pictures."
+     * "What strategy did you use and why?"
+     * "Why does this answer make sense? How do you know?"
+     * "What would you do differently next time?"
+   - Provide adequate space for written explanations
+   - Encourage multiple representation types in explanations`;
+}
+
+/**
+ * Generate visual aid instructions based on selected tools
+ */
+function generateVisualAidInstructions(selectedTools: ToolDefinition[]): string {
+  if (selectedTools.length === 0) return '';
+  
+  const toolVisualMappings: Record<string, string> = {
+    base_ten_blocks: '\n   - base_ten_blocks: Place value blocks\n     `"visualAid": { "type": "base_ten_blocks", "hundreds": 1, "tens": 2, "ones": 3 }`',
+    ten_frames: '\n   - ten_frames: Structured counting frames\n     `"visualAid": { "type": "ten_frames", "filled": 7, "total": 10 }`',
+    fraction_bars: '\n   - fraction_bars: Proportional fraction representation\n     `"visualAid": { "type": "fraction_bars", "numerator": 3, "denominator": 4 }`',
+    area_models: '\n   - area_model: Rectangle-based models\n     `"visualAid": { "type": "area_model", "width": 4, "height": 3 }`',
+    bar_models: '\n   - bar_model: Singapore math tape diagrams\n     `"visualAid": { "type": "bar_model", "bars": [{"length": 5, "label": "Group 1"}, {"length": 3, "label": "Group 2"}] }`',
+    number_lines: '\n   - number_line: Enhanced number lines\n     `"visualAid": { "type": "number_line", "start": 0, "end": 20, "highlights": [7, 15] }`',
+    arrays: '\n   - array: Grid arrangements (already available above)',
+    hundreds_charts: '\n   - hundreds_chart: Number pattern charts\n     `"visualAid": { "type": "hundreds_chart", "chartStart": 1, "chartEnd": 100, "highlightedNumbers": [25, 50, 75] }`',
+    money_manipulatives: '\n   - money_display: Coins and bills\n     `"visualAid": { "type": "money_display", "dollars": 2, "quarters": 3, "dimes": 1 }`'
+  };
+  
+  const toolVisuals = selectedTools
+    .map(tool => toolVisualMappings[tool.id])
+    .filter(Boolean)
+    .join('');
+  
+  return toolVisuals;
 }

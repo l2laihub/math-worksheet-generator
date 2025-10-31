@@ -13,6 +13,15 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { THEMES, DIFFICULTIES, getTopicsForGrade, type GradeLevel } from '@/lib/constants/topics';
 import { getStandardsForTopicAndGrade, getStandardsSummary, formatStandardCode } from '@/lib/utils/standards';
+import { 
+  MATHEMATICAL_TOOLS, 
+  PROBLEM_SOLVING_STRATEGIES, 
+  SCAFFOLDING_LEVELS, 
+  REPRESENTATION_TYPES,
+  getToolsForTopicAndGrade,
+  getStrategiesForGrade,
+  getRecommendedTools 
+} from '@/lib/constants/pedagogical-tools';
 
 const formSchema = z.object({
   gradeLevel: z.number().min(1).max(6),
@@ -20,6 +29,11 @@ const formSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']),
   problemCount: z.number().min(5).max(20),
   visualTheme: z.enum(['animals', 'space', 'food', 'nature', 'other']),
+  mathematicalTools: z.array(z.string()).optional(),
+  problemSolvingStrategy: z.string().optional(),
+  scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
+  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
+  includeThinkingPrompts: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,10 +56,18 @@ export default function GeneratePage() {
       difficulty: 'medium',
       problemCount: 10,
       visualTheme: 'animals',
+      mathematicalTools: [],
+      scaffoldingLevel: 'guided',
+      representationType: 'mixed',
+      includeThinkingPrompts: false,
     },
   });
 
   const availableTopics = getTopicsForGrade(selectedGrade);
+  const selectedTopic = form.watch('topic');
+  const availableTools = getToolsForTopicAndGrade(selectedTopic, selectedGrade);
+  const availableStrategies = getStrategiesForGrade(selectedGrade);
+  const recommendedTools = getRecommendedTools(selectedTopic);
 
   // Set default topic when grade changes
   const handleGradeChange = (grade: GradeLevel) => {
@@ -359,6 +381,188 @@ export default function GeneratePage() {
                         </div>
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Mathematical Tools Selection */}
+                <FormField
+                  control={form.control}
+                  name="mathematicalTools"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="block text-base font-semibold text-gray-900 mb-3">🧮 Mathematical Tools</FormLabel>
+                      <FormDescription className="text-sm text-gray-600">
+                        {recommendedTools.length > 0 && (
+                          <span className="text-blue-600 font-medium">
+                            Recommended: {recommendedTools.map(id => MATHEMATICAL_TOOLS.find(t => t.id === id)?.name).join(', ')}
+                          </span>
+                        )}
+                      </FormDescription>
+                      <FormControl>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {availableTools.map((tool) => (
+                            <button
+                              key={tool.id}
+                              type="button"
+                              onClick={() => {
+                                const current = field.value || [];
+                                const isSelected = current.includes(tool.id);
+                                const updated = isSelected 
+                                  ? current.filter(id => id !== tool.id)
+                                  : [...current, tool.id];
+                                field.onChange(updated);
+                              }}
+                              className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-left transition-all duration-300 ${
+                                (field.value || []).includes(tool.id)
+                                  ? 'scale-105 border-blue-500 bg-gradient-to-br from-blue-100 to-blue-50 shadow-xl ring-4 ring-blue-200'
+                                  : 'border-gray-200 bg-white hover:scale-102 hover:border-blue-300 hover:shadow-lg'
+                              }`}
+                            >
+                              <div className={`absolute right-1 top-1 transition-all duration-300 ${
+                                (field.value || []).includes(tool.id) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+                              }`}>
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg">
+                                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <span className="text-2xl">{tool.icon}</span>
+                              <span className={`text-center text-xs font-semibold ${
+                                (field.value || []).includes(tool.id) ? 'text-blue-700' : 'text-gray-900'
+                              }`}>
+                                {tool.name}
+                              </span>
+                              <span className="text-center text-xs text-gray-600">{tool.description}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Problem-Solving Strategy */}
+                <FormField
+                  control={form.control}
+                  name="problemSolvingStrategy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-semibold text-gray-900">🎯 Problem-Solving Focus</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
+                            <SelectValue placeholder="Choose a problem-solving approach" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">No specific focus</SelectItem>
+                          {availableStrategies.map((strategy) => (
+                            <SelectItem key={strategy.id} value={strategy.id}>
+                              {strategy.icon} {strategy.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {field.value && field.value !== 'none' && (
+                        <FormDescription className="text-xs text-gray-600">
+                          {availableStrategies.find(s => s.id === field.value)?.description}
+                        </FormDescription>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Advanced Options */}
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {/* Scaffolding Level */}
+                  <FormField
+                    control={form.control}
+                    name="scaffoldingLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold text-gray-900">🏗️ Support Level</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
+                              <SelectValue placeholder="Choose support level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SCAFFOLDING_LEVELS.map((level) => (
+                              <SelectItem key={level.id} value={level.id}>
+                                {level.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {field.value && (
+                          <FormDescription className="text-xs text-gray-600">
+                            {SCAFFOLDING_LEVELS.find(l => l.id === field.value)?.description}
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Representation Type */}
+                  <FormField
+                    control={form.control}
+                    name="representationType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold text-gray-900">🔄 Representation</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
+                              <SelectValue placeholder="Choose representation type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {REPRESENTATION_TYPES.map((type) => (
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {field.value && (
+                          <FormDescription className="text-xs text-gray-600">
+                            {REPRESENTATION_TYPES.find(t => t.id === field.value)?.description}
+                          </FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Include Thinking Prompts */}
+                <FormField
+                  control={form.control}
+                  name="includeThinkingPrompts"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base font-semibold text-gray-900">
+                          💭 Include "Explain Your Thinking" Prompts
+                        </FormLabel>
+                        <FormDescription className="text-sm text-gray-600">
+                          Add sections for students to explain their reasoning and problem-solving process
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
