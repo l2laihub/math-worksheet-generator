@@ -55,7 +55,11 @@
       "Bash(npm run build:*)",
       "Bash(git rm:*)",
       "Bash(npm run:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__get_logs"
     ],
     "deny": [],
     "ask": []

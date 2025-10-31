@@ -14,6 +14,7 @@ export interface PDFGenerationOptions {
     solution?: string;
   }>;
   isAnswerKey?: boolean;
+  standards?: string[];
 }
 
 export async function generateWorksheetPDF(
@@ -31,6 +32,7 @@ export async function generateWorksheetPDF(
       solution: undefined, // WorksheetProblem doesn't have solution field
     })),
     isAnswerKey,
+    standards: worksheet.metadata.standards,
   };
 
   return createPDF(options);
@@ -224,6 +226,8 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       for (let i = 0; i < pageCount; i++) {
         const pageIndex = range.start + i; // Use start as base
         doc.switchToPage(pageIndex);
+        
+        // Page number
         doc
           .fontSize(8)
           .fillColor('#666')
@@ -236,6 +240,23 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
               width: doc.page.width - 100,
             }
           );
+        
+        // Standards footer (only on first page if not answer key)
+        if (i === 0 && !options.isAnswerKey && options.standards && options.standards.length > 0) {
+          const standardsText = `Common Core Standards: ${options.standards.join(', ')}`;
+          doc
+            .fontSize(7)
+            .fillColor('#888')
+            .text(
+              standardsText,
+              50,
+              doc.page.height - 30,
+              {
+                align: 'left',
+                width: doc.page.width - 100,
+              }
+            );
+        }
       }
     }
 

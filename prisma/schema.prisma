@@ -37,9 +37,52 @@ model Generation {
   createdAt       DateTime @default(now()) @map("created_at")
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generationStandards GenerationStandard[]
 
   @@map("generations")
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+}
+
+model Standard {
+  id            String   @id @default(uuid())
+  code          String   @unique // e.g., "CCSS.MATH.CONTENT.1.OA.A.1"
+  description   String   @db.Text
+  grade         Int      // 0 for K, 1-6 for grades
+  domain        String   // e.g., "Operations & Algebraic Thinking"
+  domainCode    String   @map("domain_code") // e.g., "OA"
+  cluster       String   @db.Text // e.g., "Represent and solve problems involving addition and subtraction"
+  clusterCode   String   @map("cluster_code") // e.g., "A"
+  standardNum   Int      @map("standard_number") // e.g., 1
+  
+  topicStandards TopicStandard[]
+  generationStandards GenerationStandard[]
+  
+  @@map("standards")
+  @@index([grade])
+  @@index([domainCode])
+}
+
+model TopicStandard {
+  id          String   @id @default(uuid())
+  topicId     String   @map("topic_id")
+  standardId  String   @map("standard_id")
+  
+  standard    Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  
+  @@unique([topicId, standardId])
+  @@map("topic_standards")
+}
+
+model GenerationStandard {
+  id           String   @id @default(uuid())
+  generationId String   @map("generation_id")
+  standardId   String   @map("standard_id")
+  
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  standard     Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  
+  @@unique([generationId, standardId])
+  @@map("generation_standards")
 }

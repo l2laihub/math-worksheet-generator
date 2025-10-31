@@ -3,6 +3,8 @@
  * Based on Common Core State Standards
  */
 
+import { TOPICS } from '@/lib/constants/topics';
+
 export interface WorksheetParams {
   gradeLevel: number; // 1-6
   topic: string;
@@ -46,6 +48,12 @@ export interface WorksheetOutput {
 
 export function generateWorksheetPrompt(params: WorksheetParams): string {
   const { gradeLevel, topic, difficulty, problemCount, theme } = params;
+  
+  // Get topic standards from topics list
+  const topicData = TOPICS.find(t => t.id === topic);
+  const relevantStandards = topicData?.standards?.filter(std => 
+    std.includes(`.${gradeLevel}.`) || std.includes(`.K.`)
+  ) || [];
 
   return `You are a math education expert creating a worksheet for Grade ${gradeLevel} students.
 
@@ -91,7 +99,9 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
    - Show working for multi-step problems
 
 5. **Common Core Standards**:
-   - List the specific standards addressed (e.g., "CCSS.MATH.CONTENT.2.OA.A.1")
+   - Focus on these specific standards: ${relevantStandards.length > 0 ? relevantStandards.join(', ') : 'appropriate grade-level standards for ' + topic}
+   - List ALL standards addressed by your problems in the output
+   - Ensure each problem aligns with at least one standard
 
 **Output Format** (JSON - MUST be valid JSON):
 \`\`\`json

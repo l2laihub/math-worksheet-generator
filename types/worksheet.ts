@@ -4,7 +4,7 @@
 
 export type GradeLevel = 1 | 2 | 3 | 4 | 5 | 6;
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type Theme = 'animals' | 'space' | 'sports' | 'food' | 'nature';
+export type Theme = 'animals' | 'space' | 'food' | 'nature' | 'other';
 
 export interface GenerateWorksheetRequest {
   gradeLevel: GradeLevel;

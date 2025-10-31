@@ -12,6 +12,7 @@ export interface Topic {
   name: string;
   description: string;
   grades: GradeLevel[];
+  standards?: string[]; // Common Core standard codes
 }
 
 export const TOPICS: Topic[] = [
@@ -21,24 +22,51 @@ export const TOPICS: Topic[] = [
     name: 'Counting',
     description: 'Count objects and write numbers',
     grades: [1, 2],
+    standards: [
+      'CCSS.MATH.CONTENT.K.CC.A.1',
+      'CCSS.MATH.CONTENT.K.CC.B.4',
+      'CCSS.MATH.CONTENT.K.CC.B.5',
+      'CCSS.MATH.CONTENT.1.NBT.A.1'
+    ]
   },
   {
     id: 'addition-basic',
     name: 'Addition (Basic)',
     description: 'Addition within 20',
     grades: [1, 2],
+    standards: [
+      'CCSS.MATH.CONTENT.K.OA.A.1',
+      'CCSS.MATH.CONTENT.K.OA.A.2',
+      'CCSS.MATH.CONTENT.1.OA.A.1',
+      'CCSS.MATH.CONTENT.1.OA.C.6',
+      'CCSS.MATH.CONTENT.2.OA.B.2'
+    ]
   },
   {
     id: 'subtraction-basic',
     name: 'Subtraction (Basic)',
     description: 'Subtraction within 20',
     grades: [1, 2],
+    standards: [
+      'CCSS.MATH.CONTENT.K.OA.A.1',
+      'CCSS.MATH.CONTENT.K.OA.A.2',
+      'CCSS.MATH.CONTENT.1.OA.A.1',
+      'CCSS.MATH.CONTENT.1.OA.B.4',
+      'CCSS.MATH.CONTENT.1.OA.C.6',
+      'CCSS.MATH.CONTENT.2.OA.B.2'
+    ]
   },
   {
     id: 'place-value-basic',
     name: 'Place Value',
     description: 'Tens and ones',
     grades: [1, 2],
+    standards: [
+      'CCSS.MATH.CONTENT.1.NBT.B.2',
+      'CCSS.MATH.CONTENT.1.NBT.B.3',
+      'CCSS.MATH.CONTENT.2.NBT.A.1',
+      'CCSS.MATH.CONTENT.2.NBT.A.3'
+    ]
   },
 
   // Grade 2-3
@@ -47,18 +75,32 @@ export const TOPICS: Topic[] = [
     name: 'Addition with Regrouping',
     description: 'Two-digit addition with carrying',
     grades: [2, 3],
+    standards: [
+      'CCSS.MATH.CONTENT.2.NBT.B.5',
+      'CCSS.MATH.CONTENT.2.NBT.B.7',
+      'CCSS.MATH.CONTENT.3.NBT.A.2'
+    ]
   },
   {
     id: 'subtraction-regrouping',
     name: 'Subtraction with Regrouping',
     description: 'Two-digit subtraction with borrowing',
     grades: [2, 3],
+    standards: [
+      'CCSS.MATH.CONTENT.2.NBT.B.5',
+      'CCSS.MATH.CONTENT.2.NBT.B.7',
+      'CCSS.MATH.CONTENT.3.NBT.A.2'
+    ]
   },
   {
     id: 'skip-counting',
     name: 'Skip Counting',
     description: 'Count by 2s, 5s, 10s',
     grades: [2, 3],
+    standards: [
+      'CCSS.MATH.CONTENT.2.NBT.A.2',
+      'CCSS.MATH.CONTENT.2.OA.C.3'
+    ]
   },
 
   // Grade 3-4
@@ -67,24 +109,50 @@ export const TOPICS: Topic[] = [
     name: 'Multiplication (Basic)',
     description: 'Times tables 1-10',
     grades: [3, 4],
+    standards: [
+      'CCSS.MATH.CONTENT.3.OA.A.1',
+      'CCSS.MATH.CONTENT.3.OA.A.3',
+      'CCSS.MATH.CONTENT.3.OA.C.7',
+      'CCSS.MATH.CONTENT.4.NBT.B.5'
+    ]
   },
   {
     id: 'division-basic',
     name: 'Division (Basic)',
     description: 'Basic division facts',
     grades: [3, 4],
+    standards: [
+      'CCSS.MATH.CONTENT.3.OA.A.2',
+      'CCSS.MATH.CONTENT.3.OA.A.3',
+      'CCSS.MATH.CONTENT.3.OA.B.6',
+      'CCSS.MATH.CONTENT.3.OA.C.7',
+      'CCSS.MATH.CONTENT.4.NBT.B.6'
+    ]
   },
   {
     id: 'fractions-basic',
     name: 'Fractions (Basic)',
     description: 'Simple fractions and comparisons',
     grades: [3, 4],
+    standards: [
+      'CCSS.MATH.CONTENT.3.NF.A.1',
+      'CCSS.MATH.CONTENT.3.NF.A.2',
+      'CCSS.MATH.CONTENT.3.NF.A.3',
+      'CCSS.MATH.CONTENT.4.NF.A.1',
+      'CCSS.MATH.CONTENT.4.NF.A.2'
+    ]
   },
   {
     id: 'area-perimeter',
     name: 'Area and Perimeter',
     description: 'Calculate area and perimeter of shapes',
     grades: [3, 4, 5],
+    standards: [
+      'CCSS.MATH.CONTENT.3.MD.C.5',
+      'CCSS.MATH.CONTENT.3.MD.C.7',
+      'CCSS.MATH.CONTENT.3.MD.D.8',
+      'CCSS.MATH.CONTENT.4.MD.A.3'
+    ]
   },
 
   // Grade 4-5
