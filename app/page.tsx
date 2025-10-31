@@ -22,7 +22,7 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="max-w-[600px] text-base text-gray-700 sm:text-lg md:text-xl">
-            Generate custom, standards-aligned math worksheets with engaging visual themes for grades 1-6
+            Generate custom math worksheets aligned with <span className="font-semibold text-blue-600">Common Core Standards</span> - featuring engaging themes and visual aids for grades 1-6
           </p>
 
           {/* CTA Buttons */}
@@ -38,12 +38,12 @@ export default function Home() {
           {/* Quick Stats */}
           <div className="mt-8 grid w-full grid-cols-3 gap-4 text-center sm:gap-8">
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
-              <div className="text-2xl font-bold sm:text-3xl text-blue-600">78</div>
-              <div className="text-xs text-gray-600 sm:text-sm">Topics</div>
+              <div className="text-2xl font-bold sm:text-3xl text-blue-600">73+</div>
+              <div className="text-xs text-gray-600 sm:text-sm">CC Standards</div>
             </div>
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
-              <div className="text-2xl font-bold sm:text-3xl text-blue-600">6</div>
-              <div className="text-xs text-gray-600 sm:text-sm">Grades</div>
+              <div className="text-2xl font-bold sm:text-3xl text-blue-600">52+</div>
+              <div className="text-xs text-gray-600 sm:text-sm">Topics</div>
             </div>
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
               <div className="text-2xl font-bold sm:text-3xl text-blue-600">5</div>
@@ -76,9 +76,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <CardTitle className="text-lg sm:text-xl text-gray-900">Standards-Aligned</CardTitle>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Common Core Aligned</CardTitle>
                 <CardDescription className="text-sm text-gray-600">
-                  Common Core aligned for grades 1-6
+                  73+ standards across K-6 domains with automatic grade-level targeting
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -71,7 +71,46 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       .fontSize(12)
       .font('Helvetica')
       .text(`Grade ${options.gradeLevel}`, { align: 'center' })
-      .moveDown(1.5);
+      .moveDown(0.5);
+
+    // Common Core Standards Box (prominent display on first page)
+    if (!options.isAnswerKey && options.standards && options.standards.length > 0) {
+      const boxY = doc.y;
+      const boxHeight = 40;
+      const boxPadding = 8;
+      
+      // Draw standards box
+      doc
+        .rect(50, boxY, doc.page.width - 100, boxHeight)
+        .fillAndStroke('#f8fafc', '#e2e8f0')
+        .fillColor('#000');
+      
+      // Standards header
+      doc
+        .fontSize(10)
+        .font('Helvetica-Bold')
+        .fillColor('#1e40af')
+        .text('📋 Common Core Standards Covered:', 50 + boxPadding, boxY + boxPadding);
+      
+      // Standards list
+      const standardsText = options.standards.map(code => {
+        const shortCode = code.replace('CCSS.MATH.CONTENT.', '');
+        return shortCode;
+      }).join(' • ');
+      
+      doc
+        .fontSize(9)
+        .font('Helvetica')
+        .fillColor('#374151')
+        .text(standardsText, 50 + boxPadding, boxY + boxPadding + 12, {
+          width: doc.page.width - 100 - (boxPadding * 2),
+          align: 'left'
+        });
+      
+      doc.y = boxY + boxHeight + 10;
+    } else {
+      doc.moveDown(0.5);
+    }
 
     // Problems
     const columnWidth = 250;
@@ -241,22 +280,6 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             }
           );
         
-        // Standards footer (only on first page if not answer key)
-        if (i === 0 && !options.isAnswerKey && options.standards && options.standards.length > 0) {
-          const standardsText = `Common Core Standards: ${options.standards.join(', ')}`;
-          doc
-            .fontSize(7)
-            .fillColor('#888')
-            .text(
-              standardsText,
-              50,
-              doc.page.height - 30,
-              {
-                align: 'left',
-                width: doc.page.width - 100,
-              }
-            );
-        }
       }
     }
 

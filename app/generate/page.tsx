@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { THEMES, DIFFICULTIES, getTopicsForGrade, type GradeLevel } from '@/lib/constants/topics';
+import { getStandardsForTopicAndGrade, getStandardsSummary, formatStandardCode } from '@/lib/utils/standards';
 
 const formSchema = z.object({
   gradeLevel: z.number().min(1).max(6),
@@ -187,6 +188,53 @@ export default function GeneratePage() {
                     )}
                   />
                 </div>
+
+                {/* Common Core Standards Preview */}
+                {form.watch('topic') && form.watch('gradeLevel') && (
+                  <div className="rounded-xl border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6">
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">📋 Common Core Standards</h3>
+                    </div>
+                    
+                    {(() => {
+                      const standards = getStandardsForTopicAndGrade(form.watch('topic'), form.watch('gradeLevel'));
+                      const summary = getStandardsSummary(standards);
+                      
+                      return (
+                        <>
+                          <p className="mb-3 text-sm text-blue-700 font-medium">{summary}</p>
+                          {standards.length > 0 && (
+                            <div className="space-y-2">
+                              {standards.slice(0, 3).map((standard) => (
+                                <div key={standard.code} className="flex items-start gap-3 rounded-lg bg-white p-3 shadow-sm">
+                                  <div className="mt-0.5 flex h-6 w-14 items-center justify-center rounded bg-blue-100 text-xs font-mono text-blue-700">
+                                    {formatStandardCode(standard.code)}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs text-gray-700 leading-relaxed">{standard.description}</p>
+                                    <p className="mt-1 text-xs text-blue-600 font-medium">{standard.domain}</p>
+                                  </div>
+                                </div>
+                              ))}
+                              {standards.length > 3 && (
+                                <div className="text-center">
+                                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                                    +{standards.length - 3} more standard{standards.length - 3 > 1 ? 's' : ''}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Difficulty Selector */}
                 <FormField
