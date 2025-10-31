@@ -43,6 +43,7 @@ export interface GenerateWorksheetRequest {
   scaffoldingLevel?: ScaffoldingLevel;
   representationType?: RepresentationType;
   includeThinkingPrompts?: boolean;
+  includeToolExamples?: boolean;
 }
 
 export interface GenerateWorksheetResponse {

@@ -61,7 +61,8 @@
       "mcp__supabase__execute_sql",
       "mcp__supabase__get_logs",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

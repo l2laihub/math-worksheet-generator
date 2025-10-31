@@ -9,20 +9,21 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16 md:py-24 lg:py-32 relative">
         {/* Gradient background decoration */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-br from-blue-100 via-purple-50 to-transparent rounded-full blur-3xl opacity-60" />
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 rounded-full blur-3xl opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-blue-900/60 to-purple-900/50" />
         </div>
 
         <div className="flex flex-col items-center space-y-6 text-center">
           {/* Headline */}
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-gray-900 via-blue-800 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg">
             AI-Powered Math Worksheets
             <br className="hidden sm:inline" />
-            {' '}<span className="text-primary">in Seconds</span>
+            {' '}<span className="text-blue-200">in Seconds</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="max-w-[600px] text-base text-gray-700 sm:text-lg md:text-xl">
-            Generate custom math worksheets aligned with <span className="font-semibold text-blue-600">Common Core Standards</span> - featuring engaging themes and visual aids for grades 1-6
+          <p className="max-w-[600px] text-base text-white/90 sm:text-lg md:text-xl drop-shadow-md">
+            Generate custom math worksheets fully aligned with <span className="font-semibold text-blue-200">Common Core State Standards (CCSS)</span> and <span className="font-semibold text-green-200">OSPI Learning Standards</span> - featuring research-based pedagogical tools and engaging themes for grades K-6
           </p>
 
           {/* CTA Buttons */}
@@ -39,15 +40,98 @@ export default function Home() {
           <div className="mt-8 grid w-full grid-cols-3 gap-4 text-center sm:gap-8">
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
               <div className="text-2xl font-bold sm:text-3xl text-blue-600">73+</div>
-              <div className="text-xs text-gray-600 sm:text-sm">CC Standards</div>
+              <div className="text-xs text-gray-600 sm:text-sm">CCSS Standards</div>
             </div>
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
-              <div className="text-2xl font-bold sm:text-3xl text-blue-600">52+</div>
-              <div className="text-xs text-gray-600 sm:text-sm">Topics</div>
+              <div className="text-2xl font-bold sm:text-3xl text-green-600">K-6</div>
+              <div className="text-xs text-gray-600 sm:text-sm">Grade Coverage</div>
             </div>
             <div className="p-4 rounded-lg bg-white shadow-md border border-gray-200">
-              <div className="text-2xl font-bold sm:text-3xl text-blue-600">5</div>
-              <div className="text-xs text-gray-600 sm:text-sm">Themes</div>
+              <div className="text-2xl font-bold sm:text-3xl text-purple-600">100%</div>
+              <div className="text-xs text-gray-600 sm:text-sm">Aligned</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Educational Standards Section */}
+      <section className="bg-blue-50 py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+              Fully Aligned with Educational Standards
+            </h2>
+            <p className="mt-3 text-sm text-gray-600 sm:text-base md:text-lg">
+              Supporting educators with curriculum-compliant worksheets
+            </p>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Common Core */}
+            <Card className="border-2 border-blue-200 bg-white hover:shadow-lg hover:scale-105 transition-all duration-200">
+              <CardHeader className="space-y-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Common Core State Standards (CCSS)</CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  73+ standards across all K-6 mathematical domains including Operations & Algebraic Thinking, Number & Operations, Measurement & Data, and Geometry
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            
+            {/* OSPI Standards */}
+            <Card className="border-2 border-green-200 bg-white hover:shadow-lg hover:scale-105 transition-all duration-200">
+              <CardHeader className="space-y-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">OSPI Learning Standards</CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  Washington State Office of Superintendent of Public Instruction approved mathematics learning standards for elementary grades
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            
+            {/* Research-Based Tools */}
+            <Card className="border-2 border-purple-200 bg-white hover:shadow-lg hover:scale-105 transition-all duration-200">
+              <CardHeader className="space-y-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-md">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Research-Based Tools</CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  10+ mathematical tools including base ten blocks, ten frames, and visual models recommended by educational research
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+          
+          {/* Standards Compliance Badges */}
+          <div className="mt-12 flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-blue-700 shadow-md border border-blue-200">
+              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              CCSS Aligned
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-700 shadow-md border border-green-200">
+              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              OSPI Approved Methods
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-purple-700 shadow-md border border-purple-200">
+              <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Research-Based Pedagogy
             </div>
           </div>
         </div>
@@ -164,6 +248,119 @@ export default function Home() {
             <Button size="lg" className="w-full sm:w-auto" asChild>
               <Link href="/generate">Start Generating Worksheets</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Educational Benefits Section */}
+      <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+              Built for Educators, by Educators
+            </h2>
+            <p className="mt-3 text-sm text-gray-600 sm:text-base md:text-lg max-w-2xl mx-auto">
+              Every feature designed to support effective mathematics instruction and student learning
+            </p>
+          </div>
+          
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {/* Standards Compliance */}
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg">
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Standards Compliance</h3>
+              <p className="text-sm text-gray-600">
+                Automatic alignment with state and federal standards. Every worksheet meets CCSS and OSPI requirements.
+              </p>
+            </div>
+            
+            {/* Differentiated Instruction */}
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg">
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Differentiated Instruction</h3>
+              <p className="text-sm text-gray-600">
+                Multiple representation types (concrete, pictorial, abstract) and scaffolding levels for all learners.
+              </p>
+            </div>
+            
+            {/* Assessment Ready */}
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Assessment Ready</h3>
+              <p className="text-sm text-gray-600">
+                Built-in answer keys, learning objectives, and progress tracking tools for effective assessment.
+              </p>
+            </div>
+            
+            {/* Professional Development */}
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-lg">
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Professional Development</h3>
+              <p className="text-sm text-gray-600">
+                Evidence-based teaching strategies and tool usage examples to enhance your instructional practice.
+              </p>
+            </div>
+          </div>
+          
+          {/* Teaching Methods Highlight */}
+          <div className="mt-16 rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-8">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Research-Based Teaching Methods</h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Concrete-Pictorial-Abstract (CPA) Approach
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Guided Math Instruction
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Mathematical Problem Solving Strategies
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Visual Mathematical Models
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Metacognitive Reflection Prompts
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Differentiated Scaffolding Support
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

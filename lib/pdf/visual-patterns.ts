@@ -22,6 +22,7 @@ export type VisualPattern =
   | { type: 'array'; item: string; rows: number; cols: number }
   | { type: 'number_line'; start: number; end: number; highlights: number[] }
   | { type: 'fraction_circle'; numerator: number; denominator: number }
+  | { type: 'fraction_bars'; numerator: number; denominator: number }
   | { type: 'division_groups'; dividend: number; divisor: number; quotient: number; item: string }
   | { type: 'sample_count'; item: string; totalCount: number; sampleCount: number };
 
@@ -282,6 +283,63 @@ export class VisualPatternRenderer {
   }
 
   /**
+   * Pattern 6: Fraction Bars
+   * Display horizontal bars divided into sections with shaded portions
+   *
+   * Example: A bar divided into 4 parts with 3 parts shaded for 3/4
+   *
+   * @param doc - PDFKit document
+   * @param pattern - Fraction bars pattern
+   * @param x - X position
+   * @param y - Y position
+   * @param width - Width of the bar (default: 120)
+   * @param height - Height of the bar (default: 25)
+   */
+  static renderFractionBars(
+    doc: typeof PDFDocument,
+    pattern: { numerator: number; denominator: number },
+    x: number,
+    y: number,
+    width: number = 120,
+    height: number = 25
+  ): void {
+    const sectionWidth = width / pattern.denominator;
+
+    // Save current state
+    doc.save();
+
+    // Draw outer rectangle
+    doc.strokeColor('#374151')
+      .lineWidth(1.5)
+      .rect(x, y, width, height)
+      .stroke();
+
+    // Draw section dividers and fill
+    for (let i = 0; i < pattern.denominator; i++) {
+      const sectionX = x + i * sectionWidth;
+      
+      // Fill shaded sections
+      if (i < pattern.numerator) {
+        doc.fillColor('#3B82F6')
+          .rect(sectionX, y, sectionWidth, height)
+          .fill();
+      }
+      
+      // Draw divider (except for the last one)
+      if (i > 0) {
+        doc.strokeColor('#374151')
+          .lineWidth(1)
+          .moveTo(sectionX, y)
+          .lineTo(sectionX, y + height)
+          .stroke();
+      }
+    }
+
+    // Restore state
+    doc.restore();
+  }
+
+  /**
    * Pattern 6: Division Groups (NEW)
    * Display division as equal groups
    *
@@ -444,6 +502,10 @@ export class VisualPatternRenderer {
         this.renderFractionCircle(doc, pattern, x, y);
         break;
 
+      case 'fraction_bars':
+        this.renderFractionBars(doc, pattern, x, y);
+        break;
+
       case 'division_groups':
         this.renderDivisionGroups(doc, pattern, x, y, maxWidth);
         break;
@@ -514,6 +576,12 @@ export function getPatternDimensions(pattern: VisualPattern, maxWidth: number = 
       return {
         width: 100,
         height: 100,
+      };
+
+    case 'fraction_bars':
+      return {
+        width: 120,
+        height: 25,
       };
 
     case 'division_groups': {

@@ -20,6 +20,7 @@ const GenerateWorksheetSchema = z.object({
   scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
   representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
+  includeToolExamples: z.boolean().optional(),
 });
 
 // Initialize Anthropic client
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       scaffoldingLevel: params.scaffoldingLevel || 'default',
       representationType: params.representationType || 'default',
       includeThinkingPrompts: params.includeThinkingPrompts || false,
+      includeToolExamples: params.includeToolExamples || false,
     }, null, 2));
 
     // Generate unique ID for this generation
@@ -302,6 +304,7 @@ async function processGenerationAsync(generationId: string, params: any) {
       scaffoldingLevel: params.scaffoldingLevel,
       representationType: params.representationType,
       includeThinkingPrompts: params.includeThinkingPrompts,
+      includeToolExamples: params.includeToolExamples,
       difficulty: params.difficulty,
       theme: params.visualTheme,
     };

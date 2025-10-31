@@ -5,6 +5,7 @@
 
 import { TOPICS } from '@/lib/constants/topics';
 import { MATHEMATICAL_TOOLS, PROBLEM_SOLVING_STRATEGIES, type ToolDefinition, type StrategyDefinition } from '@/lib/constants/pedagogical-tools';
+import { getToolExamples } from '@/lib/constants/tool-examples';
 import type { MathematicalTool, ProblemSolvingStrategy, ScaffoldingLevel, RepresentationType } from '@/types/worksheet';
 
 export interface WorksheetParams {
@@ -18,6 +19,7 @@ export interface WorksheetParams {
   scaffoldingLevel?: ScaffoldingLevel;
   representationType?: RepresentationType;
   includeThinkingPrompts?: boolean;
+  includeToolExamples?: boolean;
 }
 
 export interface WorksheetProblem {
@@ -64,7 +66,8 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
     problemSolvingStrategy,
     scaffoldingLevel = 'guided',
     representationType = 'mixed',
-    includeThinkingPrompts = false
+    includeThinkingPrompts = false,
+    includeToolExamples = false
   } = params;
   
   // Get topic standards from topics list
@@ -74,9 +77,12 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
   ) || [];
 
   // Get selected tools and strategies
-  const selectedTools = mathematicalTools.map(toolId => 
-    MATHEMATICAL_TOOLS.find(tool => tool.id === toolId)
-  ).filter(Boolean) as ToolDefinition[];
+  // IMPORTANT: If abstract representation is selected, we should not use tools
+  const shouldUseTool = representationType !== 'abstract';
+  const selectedTools = shouldUseTool ? 
+    mathematicalTools.map(toolId => 
+      MATHEMATICAL_TOOLS.find(tool => tool.id === toolId)
+    ).filter(Boolean) as ToolDefinition[] : [];
   
   const selectedStrategy = problemSolvingStrategy && problemSolvingStrategy !== 'none' ? 
     PROBLEM_SOLVING_STRATEGIES.find(strategy => strategy.id === problemSolvingStrategy) || null : null;
@@ -101,7 +107,7 @@ Each requirement marked as "MANDATORY" or "FORBIDDEN" must be strictly enforced.
 2. **Problem Variety**:
    - Mix computation problems with word problems
    - Include at least 2-3 word problems using the "${theme}" theme
-   - Vary problem formats to maintain engagement${generateToolInstructions(selectedTools)}${generateStrategyInstructions(selectedStrategy)}${generateScaffoldingInstructions(scaffoldingLevel)}${generateRepresentationInstructions(representationType)}${generateThinkingPromptsInstructions(includeThinkingPrompts)}
+   - Vary problem formats to maintain engagement${generateToolInstructions(selectedTools)}${generateStrategyInstructions(selectedStrategy)}${generateScaffoldingInstructions(scaffoldingLevel)}${generateRepresentationInstructions(representationType, selectedTools, mathematicalTools)}${generateThinkingPromptsInstructions(includeThinkingPrompts)}${generateToolExamplesInstructions(selectedTools, gradeLevel, topic, includeToolExamples, representationType, mathematicalTools)}
 
 3. **Visual Aids** (SIMPLE RULES):
    - For grades 1-3: Include visual aids for 60-80% of problems
@@ -209,16 +215,68 @@ export function parseWorksheetResponse(response: string): WorksheetOutput {
   let jsonStr = jsonMatch ? jsonMatch[1] : response;
 
   try {
-    // Clean up common JSON issues
-    jsonStr = jsonStr.trim()
-      .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
-      .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Quote unquoted keys
-      .replace(/:\s*'([^']*?)'/g, ': "$1"') // Replace single quotes with double quotes
-      .replace(/\n/g, ' ') // Remove newlines that might break JSON
-      .replace(/\t/g, ' ') // Remove tabs
-      .replace(/\s+/g, ' '); // Normalize whitespace
-
-    const parsed = JSON.parse(jsonStr);
+    // Clean up common JSON issues - more careful approach
+    jsonStr = jsonStr.trim();
+    
+    // Remove any content before the first { or after the last }
+    const firstBrace = jsonStr.indexOf('{');
+    const lastBrace = jsonStr.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+    }
+    
+    // Try to parse as-is first
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (firstError) {
+      // If that fails, try cleaning up common issues
+      let cleanedJsonStr = jsonStr
+        .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+        .replace(/:\s*'([^']*?)'/g, ': "$1"') // Replace single quotes with double quotes
+        .replace(/\r?\n/g, ' ') // Replace newlines with spaces (safer for JSON)
+        .replace(/\t/g, ' ') // Replace tabs with spaces
+        .replace(/\s+/g, ' '); // Normalize multiple spaces
+        
+      // More careful key quoting - only quote keys that are actually unquoted keys
+      // Look for pattern: { or , followed by word followed by : but not inside quotes
+      cleanedJsonStr = cleanedJsonStr.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, (match, prefix, key, offset, string) => {
+        // Check if we're inside a string by counting quotes before this position
+        const beforeString = string.substring(0, offset);
+        const quoteCount = (beforeString.match(/"/g) || []).length;
+        // If odd number of quotes, we're inside a string, don't modify
+        if (quoteCount % 2 === 1) {
+          return match;
+        }
+        // Otherwise, quote the key
+        return `${prefix}"${key}":`;
+      });
+      
+      try {
+        parsed = JSON.parse(cleanedJsonStr);
+      } catch (secondError) {
+        // If still failing, try to handle incomplete JSON by checking for missing closing braces
+        const openBraces = (cleanedJsonStr.match(/{/g) || []).length;
+        const closeBraces = (cleanedJsonStr.match(/}/g) || []).length;
+        const openBrackets = (cleanedJsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (cleanedJsonStr.match(/\]/g) || []).length;
+        
+        let fixedJsonStr = cleanedJsonStr;
+        
+        // Add missing closing brackets
+        for (let i = 0; i < openBrackets - closeBrackets; i++) {
+          fixedJsonStr += ']';
+        }
+        
+        // Add missing closing braces
+        for (let i = 0; i < openBraces - closeBraces; i++) {
+          fixedJsonStr += '}';
+        }
+        
+        // Try parsing the fixed JSON
+        parsed = JSON.parse(fixedJsonStr);
+      }
+    }
 
     // Validate structure
     if (!parsed.problems || !Array.isArray(parsed.problems)) {
@@ -406,7 +464,7 @@ function generateScaffoldingInstructions(scaffoldingLevel: ScaffoldingLevel): st
 /**
  * Generate representation type instructions
  */
-function generateRepresentationInstructions(representationType: RepresentationType): string {
+function generateRepresentationInstructions(representationType: RepresentationType, selectedTools: ToolDefinition[], originalTools: string[] = []): string {
   const instructions = {
     concrete: `
 
@@ -439,7 +497,11 @@ function generateRepresentationInstructions(representationType: RepresentationTy
    - NO manipulative references - pure computational focus
    - Use equations, number relationships, and mathematical symbols
    - Problems should be computation-focused: "Calculate", "Solve", "Find"
-   - Examples: "7 × 8 = ?" or "What number makes 24 ÷ ? = 6?" NOT story problems`,
+   - Examples: "7 × 8 = ?" or "What number makes 24 ÷ ? = 6?" NOT story problems${originalTools.length > 0 ? `
+   
+   ⚠️ **IMPORTANT OVERRIDE**: Abstract representation was selected, which conflicts with tool usage.
+   IGNORE all tool requirements above. Do NOT reference or use mathematical tools in any problems.
+   Focus ONLY on abstract number computation.` : ''}`,
     
     mixed: `
 
@@ -499,4 +561,68 @@ function generateVisualAidInstructions(selectedTools: ToolDefinition[]): string 
     .join('');
   
   return toolVisuals;
+}
+
+/**
+ * Generate tool usage examples instructions for the prompt
+ */
+function generateToolExamplesInstructions(
+  selectedTools: ToolDefinition[], 
+  gradeLevel: number, 
+  topic: string, 
+  includeToolExamples: boolean,
+  representationType?: string,
+  originalTools?: string[]
+): string {
+  if (!includeToolExamples) return '';
+  
+  // For abstract representation, use original tools (before filtering)
+  // Tool examples are educational content separate from worksheet problems
+  const toolsForExamples = representationType === 'abstract' && originalTools?.length ? 
+    originalTools.map(toolId => 
+      MATHEMATICAL_TOOLS.find(tool => tool.id === toolId)
+    ).filter(Boolean) as ToolDefinition[] : 
+    selectedTools;
+  
+  if (toolsForExamples.length === 0) return '';
+  
+  const toolExamples = getToolExamples(
+    toolsForExamples.map(t => t.id), 
+    gradeLevel, 
+    topic
+  );
+  
+  if (toolExamples.length === 0) return '';
+  
+  const exampleText = toolExamples.slice(0, 2).map(example => 
+    `**${example.toolName} Example:**
+    Problem: ${example.problem}
+    Steps:
+    ${example.steps.map(step => 
+      `${step.number}. ${step.description}${step.visualization ? ' - ' + step.visualization : ''}`
+    ).join('\n    ')}
+    Solution: ${example.solution}`
+  ).join('\n\n    ');
+  
+  const abstractNote = representationType === 'abstract' ? `
+   
+   ⚠️ **IMPORTANT NOTE**: These tool examples are for educational reference only.
+   The actual worksheet problems will use abstract/symbolic representation as specified.` : '';
+  
+  return `
+
+8. **Tool Usage Examples** (MANDATORY SECTION):
+   **CRITICAL**: Since tool examples are requested, include a dedicated "Tool Usage Examples" section:
+   - Add this section BEFORE the main problems
+   - Show step-by-step examples for tools: ${toolsForExamples.map(t => t.name).join(', ')}
+   - Use these specific examples:
+   
+    ${exampleText}${abstractNote}
+   
+   **Section Format Requirements:**
+   - Title: "How to Use Your Mathematical Tools"
+   - Include 1-2 examples from selected tools
+   - Show clear step-by-step instructions
+   - Use simple visualizations when helpful
+   - Make examples grade-appropriate for Grade ${gradeLevel}`;
 }

@@ -34,6 +34,7 @@ const formSchema = z.object({
   scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
   representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
+  includeToolExamples: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -60,6 +61,7 @@ export default function GeneratePage() {
       scaffoldingLevel: 'guided',
       representationType: 'mixed',
       includeThinkingPrompts: false,
+      includeToolExamples: true,
     },
   });
 
@@ -68,6 +70,9 @@ export default function GeneratePage() {
   const availableTools = getToolsForTopicAndGrade(selectedTopic, selectedGrade);
   const availableStrategies = getStrategiesForGrade(selectedGrade);
   const recommendedTools = getRecommendedTools(selectedTopic);
+  const selectedRepresentation = form.watch('representationType');
+  const selectedToolsCount = form.watch('mathematicalTools')?.length || 0;
+  const includeToolExamples = form.watch('includeToolExamples');
 
   // Set default topic when grade changes
   const handleGradeChange = (grade: GradeLevel) => {
@@ -77,6 +82,16 @@ export default function GeneratePage() {
       form.setValue('topic', topics[0].id);
     }
   };
+
+  // Clear tools when abstract representation is selected (unless tool examples are wanted)
+  useEffect(() => {
+    if (selectedRepresentation === 'abstract') {
+      // Only clear tools if user doesn't want tool examples
+      if (!includeToolExamples) {
+        form.setValue('mathematicalTools', []);
+      }
+    }
+  }, [selectedRepresentation, includeToolExamples, form]);
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
@@ -393,7 +408,15 @@ export default function GeneratePage() {
                     <FormItem className="space-y-3">
                       <FormLabel className="block text-base font-semibold text-gray-900 mb-3">🧮 Mathematical Tools</FormLabel>
                       <FormDescription className="text-sm text-gray-600">
-                        {recommendedTools.length > 0 && (
+                        {selectedRepresentation === 'abstract' && !includeToolExamples ? (
+                          <span className="text-yellow-600 font-medium">
+                            Tools are disabled when using abstract representation without tool examples
+                          </span>
+                        ) : selectedRepresentation === 'abstract' && includeToolExamples ? (
+                          <span className="text-blue-600 font-medium">
+                            Tools enabled for educational examples (problems will still use abstract representation)
+                          </span>
+                        ) : recommendedTools.length > 0 && (
                           <span className="text-blue-600 font-medium">
                             Recommended: {recommendedTools.map(id => MATHEMATICAL_TOOLS.find(t => t.id === id)?.name).join(', ')}
                           </span>
@@ -405,7 +428,9 @@ export default function GeneratePage() {
                             <button
                               key={tool.id}
                               type="button"
+                              disabled={selectedRepresentation === 'abstract' && !includeToolExamples}
                               onClick={() => {
+                                if (selectedRepresentation === 'abstract' && !includeToolExamples) return;
                                 const current = field.value || [];
                                 const isSelected = current.includes(tool.id);
                                 const updated = isSelected 
@@ -414,9 +439,11 @@ export default function GeneratePage() {
                                 field.onChange(updated);
                               }}
                               className={`group relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-left transition-all duration-300 ${
-                                (field.value || []).includes(tool.id)
-                                  ? 'scale-105 border-blue-500 bg-gradient-to-br from-blue-100 to-blue-50 shadow-xl ring-4 ring-blue-200'
-                                  : 'border-gray-200 bg-white hover:scale-102 hover:border-blue-300 hover:shadow-lg'
+                                selectedRepresentation === 'abstract' && !includeToolExamples
+                                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-50'
+                                  : (field.value || []).includes(tool.id)
+                                    ? 'scale-105 border-blue-500 bg-gradient-to-br from-blue-100 to-blue-50 shadow-xl ring-4 ring-blue-200'
+                                    : 'border-gray-200 bg-white hover:scale-102 hover:border-blue-300 hover:shadow-lg'
                               }`}
                             >
                               <div className={`absolute right-1 top-1 transition-all duration-300 ${
@@ -535,6 +562,17 @@ export default function GeneratePage() {
                             {REPRESENTATION_TYPES.find(t => t.id === field.value)?.description}
                           </FormDescription>
                         )}
+                        {selectedRepresentation === 'abstract' && selectedToolsCount > 0 && (
+                          <div className="mt-2 rounded-md bg-blue-50 p-2 text-xs">
+                            <p className="text-blue-800">
+                              <span className="font-semibold">ℹ️ Note:</span> Abstract representation focuses on pure numbers and symbols. 
+                              {includeToolExamples 
+                                ? 'Tool examples will be shown for educational reference, but problems will use abstract representation.'
+                                : 'Mathematical tools will not be used in the problems.'
+                              }
+                            </p>
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -553,6 +591,32 @@ export default function GeneratePage() {
                         </FormLabel>
                         <FormDescription className="text-sm text-gray-600">
                           Add sections for students to explain their reasoning and problem-solving process
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Include Tool Usage Examples */}
+                <FormField
+                  control={form.control}
+                  name="includeToolExamples"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base font-semibold text-gray-900">
+                          📚 Include Tool Usage Examples
+                        </FormLabel>
+                        <FormDescription className="text-sm text-gray-600">
+                          Show students step-by-step examples of how to use selected mathematical tools
                         </FormDescription>
                       </div>
                       <FormControl>
