@@ -682,3 +682,162 @@ function generateToolExamplesInstructions(
    - Use simple visualizations when helpful
    - Make examples grade-appropriate for Grade ${gradeLevel}`;
 }
+
+/**
+ * Generate a custom worksheet prompt based on user's format description
+ */
+export interface CustomWorksheetParams {
+  gradeLevel: number;
+  topic: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  problemCount: number;
+  theme: string;
+  customFormatDescription: string;
+  sampleImageUrl?: string;
+}
+
+export function generateCustomWorksheetPrompt(params: CustomWorksheetParams): string {
+  const { 
+    gradeLevel, 
+    topic, 
+    difficulty, 
+    problemCount, 
+    theme,
+    customFormatDescription,
+    sampleImageUrl
+  } = params;
+  
+  // Get topic standards from topics list
+  const topicData = TOPICS.find(t => t.id === topic);
+  const relevantStandards = topicData?.standards?.filter(std => 
+    std.includes(`.${gradeLevel}.`) || std.includes(`.K.`)
+  ) || [];
+
+  return `You are a math education expert creating a custom-formatted worksheet for Grade ${gradeLevel} students.
+
+**Core Requirements** (MANDATORY):
+- Grade Level: ${gradeLevel}
+- Topic: "${topic}"
+- Difficulty: ${difficulty}
+- Number of Problems: ${problemCount}
+- Theme: ${theme} (incorporate in word problems and context)
+
+**Custom Format Instructions**:
+The teacher has provided this specific format request:
+"${customFormatDescription}"
+
+${sampleImageUrl ? `**Sample Image Analysis**: A sample worksheet image has been provided for reference. Analyze the layout, spacing, visual style, and format elements to match the desired appearance.` : ''}
+
+**FORMAT DETECTION**:
+- If the description mentions "partial products", "box method", "area model", or "grid multiplication" → use "partial_products" visual aid
+- If the description mentions "lattice", "diagonal method", or "lattice multiplication" → use "lattice_multiplication" visual aid  
+- If the description mentions "decomposition", "breaking apart numbers", or "place value expansion" → use "decomposition_method" visual aid
+- If the description mentions "array", "rows and columns", or "repeated addition" → use "array" visual aid with proper rows/cols
+
+⚠️  **CRITICAL COMPLIANCE NOTICE** ⚠️
+YOU MUST FOLLOW ALL REQUIREMENTS EXACTLY. NON-COMPLIANCE WILL RESULT IN REJECTION.
+
+**Educational Standards Requirements**:
+1. **Grade-Appropriate Content**:
+   - Problems must align with Grade ${gradeLevel} Common Core Math Standards
+   - Focus on these specific standards: ${relevantStandards.length > 0 ? relevantStandards.join(', ') : 'appropriate grade-level standards for ' + topic}
+   - Use age-appropriate language and mathematical concepts
+
+2. **Content Quality**:
+   - Mix computation problems with word problems
+   - Include at least 2-3 word problems using the "${theme}" theme
+   - Ensure mathematical accuracy in all problems and solutions
+   - Provide clear, step-by-step solutions for complex problems
+
+**Custom Format Implementation**:
+3. **Layout & Format Adaptation**:
+   - CAREFULLY follow the user's format description: "${customFormatDescription}"
+   - Adapt the standard problem structure to match requested layout
+   - Maintain educational integrity while implementing custom formatting
+   - If layout conflicts with educational best practices, prioritize learning while accommodating format requests
+
+4. **Visual Elements**:
+   - Include visual aids only when appropriate for the format and numbers ≤ 12
+   - **CRITICAL**: Use ONLY these supported visual aid types: "countable_objects", "grouped_objects", "array", "number_line", "fraction_circle", "fraction_bars", "partial_products", "lattice_multiplication", "decomposition_method"
+   - Do NOT create text-based visual representations or ASCII art
+   - Do NOT use characters like "%", "&", or symbols to represent grids
+   - **SPECIAL FORMATS**:
+     * For partial products/box method: use \`"visualAid": {"type": "partial_products", "factor1": 23, "factor2": 15}\`
+     * For lattice multiplication: use \`"visualAid": {"type": "lattice_multiplication", "factor1": 23, "factor2": 15}\`
+     * For regular arrays: use \`"visualAid": {"type": "array", "item": "dog", "rows": 4, "cols": 3}\`
+   - Use theme items: ${getThemeItems(theme)}
+   - Balance educational effectiveness with format requirements
+
+**Output Requirements**:
+- Maintain the same JSON structure as standard worksheets
+- Add format-specific instructions in the "instructions" field
+- Include custom layout notes in problem descriptions when needed
+- Ensure all problems have complete "question" and "answer" fields
+
+**Output Format** (JSON - MUST be valid JSON):
+\`\`\`json
+{
+  "title": "Grade ${gradeLevel} ${topic} Practice - Custom Format",
+  "instructions": "Solve each problem following the format shown. Show your work! [Include any specific format instructions here]",
+  "problems": [
+    {
+      "id": 1,
+      "question": "Problem text adapted to custom format requirements...",
+      "answer": "Correct answer",
+      "visualAid": {
+        "type": "array",
+        "item": "dog",
+        "rows": 3,
+        "cols": 4
+      },
+      "workingSpace": true
+    },
+    {
+      "id": 2,
+      "question": "Another problem...",
+      "answer": "Another answer",
+      "visualAid": {
+        "type": "countable_objects",
+        "item": "cat",
+        "count": 6
+      },
+      "workingSpace": true
+    }
+  ],
+  "metadata": {
+    "gradeLevel": ${gradeLevel},
+    "topic": "${topic}",
+    "difficulty": "${difficulty}",
+    "theme": "${theme}",
+    "standards": ["CCSS.MATH.CONTENT.example"],
+    "customFormat": true,
+    "formatDescription": "${customFormatDescription.substring(0, 200)}..."
+  }
+}
+\`\`\`
+
+**CRITICAL VISUAL AID RULES**:
+- NEVER include text-based grids, ASCII art, or symbol patterns in the question text
+- NEVER use characters like %, &, #, or symbols to draw grids or tables  
+- For multiplication arrays, use: \`"visualAid": {"type": "array", "item": "dog", "rows": 4, "cols": 3}\`
+- For countable objects, use: \`"visualAid": {"type": "countable_objects", "item": "cat", "count": 12}\`
+- Keep the question text clean and readable - let the visualAid handle all visual elements
+
+**CRITICAL VALIDATION REQUIREMENTS**:
+✓ EVERY problem MUST have BOTH "question" AND "answer" fields (MANDATORY)
+✓ Content must be mathematically accurate and grade-appropriate
+✓ Format must reasonably accommodate the user's layout requests
+✓ Educational standards must be maintained regardless of format
+✓ JSON must be valid and parseable
+✓ Problems must align with Grade ${gradeLevel} Common Core standards
+
+⚠️ **IMPORTANT NOTES**:
+- Prioritize educational value over format preferences when they conflict
+- Be creative in adapting standard educational content to custom formats
+- Maintain mathematical rigor while accommodating layout requests
+- If specific format elements are unclear, implement reasonable interpretations
+
+🚨 **CRITICAL REMINDER**: Each problem MUST include both "question" and "answer" fields! Custom formatting should enhance, not compromise, educational content.
+
+Generate the complete custom-formatted worksheet now with ${problemCount} problems that follow the requested format while maintaining educational excellence.`;
+}

@@ -35,6 +35,37 @@ const formSchema = z.object({
   representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed', 'word_problems']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
   includeToolExamples: z.boolean().optional(),
+  // Custom format fields
+  useCustomFormat: z.boolean().optional(),
+  customFormatDescription: z.string().optional(),
+  sampleImageUrl: z.string().optional(),
+}).refine((data) => {
+  // If custom format is enabled, description is required
+  if (data.useCustomFormat && !data.customFormatDescription?.trim()) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Custom format description is required when using custom format",
+  path: ["customFormatDescription"]
+}).refine((data) => {
+  // Custom format description length validation
+  if (data.customFormatDescription && data.customFormatDescription.length > 2000) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Custom format description must be less than 2000 characters",
+  path: ["customFormatDescription"]
+}).refine((data) => {
+  // Custom format description minimum length validation
+  if (data.customFormatDescription && data.customFormatDescription.trim().length > 0 && data.customFormatDescription.trim().length < 50) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please provide more detail about your desired format (minimum 50 characters)",
+  path: ["customFormatDescription"]
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,6 +75,8 @@ export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(3);
   const [mounted, setMounted] = useState(false);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +95,9 @@ export default function GeneratePage() {
       representationType: 'mixed',
       includeThinkingPrompts: false,
       includeToolExamples: true,
+      useCustomFormat: false,
+      customFormatDescription: '',
+      sampleImageUrl: '',
     },
   });
 
@@ -73,6 +109,7 @@ export default function GeneratePage() {
   const selectedRepresentation = form.watch('representationType');
   const selectedToolsCount = form.watch('mathematicalTools')?.length || 0;
   const includeToolExamples = form.watch('includeToolExamples');
+  const useCustomFormat = form.watch('useCustomFormat');
 
   // Set default topic when grade changes
   const handleGradeChange = (grade: GradeLevel) => {
@@ -92,6 +129,45 @@ export default function GeneratePage() {
       }
     }
   }, [selectedRepresentation, includeToolExamples, form]);
+
+  // Handle image upload and analysis
+  const handleImageUpload = async (file: File) => {
+    setIsAnalyzingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('description', form.getValues('customFormatDescription') || '');
+
+      const response = await fetch('/api/analyze-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to analyze image');
+      }
+
+      const result = await response.json();
+      setImageAnalysis(result.analysis);
+      
+      // Update the form with enhanced description based on image analysis
+      const currentDescription = form.getValues('customFormatDescription') || '';
+      const enhancedDescription = currentDescription + 
+        `\n\n[Image Analysis: ${result.analysis.formatDescription}. Detected features: ${result.analysis.specialFeatures.join(', ')}]`;
+      
+      form.setValue('customFormatDescription', enhancedDescription);
+      form.setValue('sampleImageUrl', result.fileName);
+      
+      toast.success('Image analyzed successfully! Format description updated.');
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to analyze image');
+      form.setValue('sampleImageUrl', '');
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
@@ -352,7 +428,155 @@ export default function GeneratePage() {
                   )}
                 />
 
-                {/* Visual Theme Selector */}
+                {/* Custom Format Toggle */}
+                <FormField
+                  control={form.control}
+                  name="useCustomFormat"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base font-semibold text-gray-900">
+                          ✨ Custom Format Mode
+                        </FormLabel>
+                        <FormDescription className="text-sm text-gray-600">
+                          Describe your own worksheet format or upload a sample image instead of using standard options
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Custom Format Description */}
+                {useCustomFormat && (
+                  <FormField
+                    control={form.control}
+                    name="customFormatDescription"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-semibold text-gray-900">📝 Describe Your Desired Format</FormLabel>
+                        <FormControl>
+                          <div className="space-y-3">
+                            <textarea
+                              {...field}
+                              placeholder="Describe how you want your worksheet to look. For example: 'I want problems arranged in 3 columns with extra space for showing work. Include a header section for student name and date. Make problems larger with more spacing between them...'"
+                              className="min-h-[120px] w-full rounded-lg border-2 border-purple-200 bg-white p-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-200"
+                              maxLength={2000}
+                            />
+                            <div className="flex justify-between text-xs text-gray-600">
+                              <span>Minimum 50 characters for detailed description</span>
+                              <span>{field.value?.length || 0}/2000</span>
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-sm text-gray-600">
+                          Be specific about layout, spacing, visual elements, and any special features you want. The more detail, the better the result!
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Sample Image Upload */}
+                {useCustomFormat && (
+                  <FormField
+                    control={form.control}
+                    name="sampleImageUrl"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-semibold text-gray-900">📷 Upload Sample Worksheet (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="space-y-4">
+                            <div className="rounded-lg border-2 border-dashed border-purple-200 bg-purple-50 p-6 text-center">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    await handleImageUpload(file);
+                                  }
+                                }}
+                                className="hidden"
+                                id="sample-image-upload"
+                                disabled={isAnalyzingImage}
+                              />
+                              <label
+                                htmlFor="sample-image-upload"
+                                className="cursor-pointer space-y-2 block"
+                              >
+                                <div className="text-4xl">
+                                  {isAnalyzingImage ? '🔄' : '📷'}
+                                </div>
+                                <p className="text-sm font-medium text-purple-700">
+                                  {isAnalyzingImage 
+                                    ? 'Analyzing image...' 
+                                    : field.value 
+                                      ? `Analyzed: ${field.value}` 
+                                      : 'Click to upload sample worksheet image'
+                                  }
+                                </p>
+                                <p className="text-xs text-purple-600">
+                                  {isAnalyzingImage 
+                                    ? 'Claude is analyzing your image to understand the format...'
+                                    : 'Upload an example of the worksheet format you want (PNG, JPG, PDF)'
+                                  }
+                                </p>
+                              </label>
+                            </div>
+                            {field.value && !isAnalyzingImage && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between rounded-lg bg-green-50 border border-green-200 p-3">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-green-700">Image analyzed: {field.value}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      field.onChange('');
+                                      setImageAnalysis(null);
+                                    }}
+                                    className="text-green-600 hover:text-green-800 text-sm font-medium"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                                
+                                {imageAnalysis && (
+                                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                                    <h4 className="text-sm font-semibold text-blue-800 mb-2">📊 Analysis Results</h4>
+                                    <div className="space-y-2 text-xs text-blue-700">
+                                      <div><strong>Layout:</strong> {imageAnalysis.layout}</div>
+                                      <div><strong>Detected Features:</strong> {imageAnalysis.specialFeatures.join(', ') || 'None'}</div>
+                                      <div><strong>Suggested Visual Aids:</strong> {imageAnalysis.suggestedVisualAids.join(', ') || 'Standard'}</div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-sm text-gray-600">
+                          Upload a sample worksheet image to help Claude understand your desired format better. The AI will analyze the layout, spacing, and visual elements.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {!useCustomFormat && (
+                  <>
+                    {/* Visual Theme Selector */}
                 <FormField
                   control={form.control}
                   name="visualTheme"
@@ -644,6 +868,8 @@ export default function GeneratePage() {
                     </FormItem>
                   )}
                 />
+                  </>
+                )}
 
                 {/* Submit Button */}
                 <div className="pt-4">

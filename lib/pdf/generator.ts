@@ -372,6 +372,13 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       }
       
       const x = startX + currentColumn * (columnWidth + 50);
+      
+      // Safety check for coordinates
+      if (isNaN(currentY) || isNaN(x)) {
+        console.error(`[PDF] Invalid coordinates: x=${x}, currentY=${currentY}, problem=${index + 1}`);
+        currentY = 50; // Reset to safe value
+      }
+      
       doc.x = x;
       doc.y = currentY;
 
@@ -381,17 +388,30 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
       });
 
       currentY = doc.y;
+      
+      // Safety check after problem number
+      if (isNaN(currentY)) {
+        console.error(`[PDF] NaN after problem number: problem=${index + 1}`);
+        currentY = doc.y || 50;
+      }
 
-      // Problem question
+      // Problem question - sanitize text
+      const questionText = (problem.question || '').toString();
       doc
         .fontSize(11)
         .font('Helvetica')
-        .text(problem.question, x + 20, currentY, {
+        .text(questionText, x + 20, currentY, {
           width: Math.min(columnWidth - 20, maxVisualWidth),
           align: 'left',
         });
 
       currentY = doc.y + 5;
+      
+      // Safety check after question text
+      if (isNaN(currentY)) {
+        console.error(`[PDF] NaN after question text: problem=${index + 1}`);
+        currentY = (doc.y || 50) + 5;
+      }
 
       // Visual aid rendering (if not answer key)
       if (problem.visualAid && !options.isAnswerKey) {
@@ -407,6 +427,12 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
 
           // Update currentY based on pattern height
           currentY += dimensions.height + 10;
+          
+          // Safety check after visual aid
+          if (isNaN(currentY)) {
+            console.error(`[PDF] NaN after visual aid: problem=${index + 1}`);
+            currentY = (doc.y || 50) + 10;
+          }
         } catch (error) {
           console.error('Error rendering visual aid:', error);
           // Fallback to text placeholder
@@ -414,6 +440,12 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             width: maxVisualWidth,
           });
           currentY = doc.y + 5;
+          
+          // Safety check after fallback
+          if (isNaN(currentY)) {
+            console.error(`[PDF] NaN after visual aid fallback: problem=${index + 1}`);
+            currentY = (doc.y || 50) + 5;
+          }
         }
       }
 
@@ -426,10 +458,17 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             width: maxVisualWidth,
           });
         currentY = doc.y + 20;
+        
+        // Safety check after answer space
+        if (isNaN(currentY)) {
+          console.error(`[PDF] NaN after answer space: problem=${index + 1}`);
+          currentY = (doc.y || 50) + 20;
+        }
       }
       // Show answer and solution (if answer key)
       else {
         if (problem.answer) {
+          const answerText = (problem.answer || '').toString();
           doc
             .fontSize(10)
             .fillColor('#000')
@@ -437,24 +476,44 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             .text('Answer: ', x + 20, currentY, { continued: true })
             .font('Helvetica')
             .fillColor('#0066cc')
-            .text(problem.answer);
+            .text(answerText);
           currentY = doc.y + 5;
+          
+          // Safety check after answer
+          if (isNaN(currentY)) {
+            console.error(`[PDF] NaN after answer: problem=${index + 1}`);
+            currentY = (doc.y || 50) + 5;
+          }
         }
 
         if (problem.solution) {
+          const solutionText = (problem.solution || '').toString();
           doc
             .fontSize(9)
             .fillColor('#666')
             .text('Solution: ', x + 20, currentY, { continued: true })
-            .text(problem.solution, {
+            .text(solutionText, {
               width: maxVisualWidth,
             });
           currentY = doc.y + 10;
+          
+          // Safety check after solution
+          if (isNaN(currentY)) {
+            console.error(`[PDF] NaN after solution: problem=${index + 1}`);
+            currentY = (doc.y || 50) + 10;
+          }
         }
       }
 
       // Update currentY for next problem and save to appropriate column
       currentY += 5;
+      
+      // Final safety check before updating column positions
+      if (isNaN(currentY)) {
+        console.error(`[PDF] NaN at end of problem processing: problem=${index + 1}`);
+        currentY = 50; // Reset to safe value
+      }
+      
       problemsInCurrentColumn++;
       
       if (currentColumn === 0) {
@@ -789,5 +848,58 @@ function renderToolExampleVisual(
  * The types are compatible but need to be cast properly
  */
 function convertToVisualPattern(visualAid: VisualAid): VisualPattern {
-  return visualAid as unknown as VisualPattern;
+  try {
+    // Handle common type mismatches from Claude responses
+    const cleanedAid = { ...visualAid };
+    
+    // Fix common type name issues
+    if (cleanedAid.type === 'groups' as any) {
+      cleanedAid.type = 'grouped_objects';
+    }
+    
+    // For array type, ensure we have rows and cols
+    if (cleanedAid.type === 'array') {
+      if (!cleanedAid.rows || !cleanedAid.cols) {
+        // If we have count, try to make a reasonable grid
+        if (cleanedAid.count) {
+          const count = cleanedAid.count;
+          cleanedAid.rows = Math.ceil(Math.sqrt(count));
+          cleanedAid.cols = Math.ceil(count / cleanedAid.rows);
+        } else {
+          // Default to simple 2x2
+          cleanedAid.rows = 2;
+          cleanedAid.cols = 2;
+        }
+      }
+    }
+    
+    // Validate required fields for each type
+    switch (cleanedAid.type) {
+      case 'countable_objects':
+        if (!cleanedAid.count || !cleanedAid.item) {
+          throw new Error(`Invalid countable_objects: missing count or item`);
+        }
+        break;
+      case 'grouped_objects':
+        if (!cleanedAid.groups || !Array.isArray(cleanedAid.groups)) {
+          throw new Error(`Invalid grouped_objects: missing or invalid groups`);
+        }
+        break;
+      case 'array':
+        if (!cleanedAid.rows || !cleanedAid.cols || !cleanedAid.item) {
+          throw new Error(`Invalid array: missing rows, cols, or item`);
+        }
+        break;
+    }
+    
+    return cleanedAid as unknown as VisualPattern;
+  } catch (error) {
+    console.error('[PDF] Error converting visual aid:', error, visualAid);
+    // Return a simple fallback pattern
+    return {
+      type: 'countable_objects',
+      item: 'circle',
+      count: 1
+    };
+  }
 }

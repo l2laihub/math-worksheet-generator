@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { generateWorksheetPrompt, parseWorksheetResponse, validateWorksheet } from '@/lib/prompts/worksheet-generator';
+import { generateWorksheetPrompt, generateCustomWorksheetPrompt, parseWorksheetResponse, validateWorksheet } from '@/lib/prompts/worksheet-generator';
 import { checkWorksheetCompliance } from '@/lib/utils/compliance-checker';
 import type { GenerateWorksheetRequest, GenerateWorksheetResponse } from '@/types/worksheet';
 import { generateWorksheetPDF } from '@/lib/pdf/generator';
@@ -21,6 +21,28 @@ const GenerateWorksheetSchema = z.object({
   representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed', 'word_problems']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
   includeToolExamples: z.boolean().optional(),
+  // Custom format fields
+  useCustomFormat: z.boolean().optional(),
+  customFormatDescription: z.string().max(2000).optional(),
+  sampleImageUrl: z.string().optional(),
+}).refine((data) => {
+  // If custom format is enabled, description is required
+  if (data.useCustomFormat && !data.customFormatDescription?.trim()) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Custom format description is required when using custom format",
+  path: ["customFormatDescription"]
+}).refine((data) => {
+  // Custom format description minimum length validation
+  if (data.customFormatDescription && data.customFormatDescription.trim().length > 0 && data.customFormatDescription.trim().length < 50) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please provide more detail about your desired format (minimum 50 characters)",
+  path: ["customFormatDescription"]
 });
 
 // Initialize Anthropic client
@@ -132,18 +154,28 @@ async function processGenerationAsync(generationId: string, params: any) {
 
     // Step 2: Generate prompt
     currentStep = 'prompt_generation';
-    const prompt = generateWorksheetPrompt({
-      gradeLevel: params.gradeLevel,
-      topic: params.topic,
-      difficulty: params.difficulty,
-      problemCount: params.problemCount,
-      theme: params.visualTheme,
-      mathematicalTools: params.mathematicalTools,
-      problemSolvingStrategy: params.problemSolvingStrategy,
-      scaffoldingLevel: params.scaffoldingLevel,
-      representationType: params.representationType,
-      includeThinkingPrompts: params.includeThinkingPrompts,
-    });
+    const prompt = params.useCustomFormat 
+      ? generateCustomWorksheetPrompt({
+          gradeLevel: params.gradeLevel,
+          topic: params.topic,
+          difficulty: params.difficulty,
+          problemCount: params.problemCount,
+          theme: params.visualTheme,
+          customFormatDescription: params.customFormatDescription,
+          sampleImageUrl: params.sampleImageUrl,
+        })
+      : generateWorksheetPrompt({
+          gradeLevel: params.gradeLevel,
+          topic: params.topic,
+          difficulty: params.difficulty,
+          problemCount: params.problemCount,
+          theme: params.visualTheme,
+          mathematicalTools: params.mathematicalTools,
+          problemSolvingStrategy: params.problemSolvingStrategy,
+          scaffoldingLevel: params.scaffoldingLevel,
+          representationType: params.representationType,
+          includeThinkingPrompts: params.includeThinkingPrompts,
+        });
     console.log('[Generate] Prompt generated', { generationId, promptLength: prompt.length });
     
     // Enhanced prompt logging for debugging

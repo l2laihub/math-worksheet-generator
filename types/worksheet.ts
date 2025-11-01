@@ -49,6 +49,10 @@ export interface GenerateWorksheetRequest {
   representationType?: RepresentationType;
   includeThinkingPrompts?: boolean;
   includeToolExamples?: boolean;
+  // Custom format fields
+  useCustomFormat?: boolean;
+  customFormatDescription?: string;
+  sampleImageUrl?: string;
 }
 
 export interface GenerateWorksheetResponse {
