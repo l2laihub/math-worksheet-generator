@@ -459,3 +459,439 @@ export function renderMoney(
     height: totalHeight
   };
 }
+
+/**
+ * Renders partial products using Box Method format (proper multi-digit breakdown)
+ */
+export function renderPartialProducts(
+  options: ToolVisualOptions & { factor1: number; factor2: number }
+): { width: number; height: number } {
+  const { doc, x, y, factor1, factor2 } = options;
+  const boxWidth = 50;
+  const boxHeight = 25;
+  const fontSize = 11;
+  const labelFontSize = 9;
+  
+  // Save current state
+  doc.save();
+  
+  let currentY = y;
+  
+  // Problem header (e.g., "23 × 15")
+  doc.fontSize(fontSize)
+    .fillColor('#000000')
+    .text(`${factor1} × ${factor2}`, x, currentY);
+  currentY += 30;
+  
+  // Properly decompose BOTH factors
+  function decompose(num: number): number[] {
+    const str = num.toString();
+    const parts: number[] = [];
+    
+    if (str.length === 1) {
+      parts.push(num);
+    } else if (str.length === 2) {
+      const tens = Math.floor(num / 10) * 10;
+      const ones = num % 10;
+      if (tens > 0) parts.push(tens);
+      if (ones > 0) parts.push(ones);
+    } else if (str.length === 3) {
+      const hundreds = Math.floor(num / 100) * 100;
+      const tens = Math.floor((num % 100) / 10) * 10;
+      const ones = num % 10;
+      if (hundreds > 0) parts.push(hundreds);
+      if (tens > 0) parts.push(tens);
+      if (ones > 0) parts.push(ones);
+    }
+    
+    return parts;
+  }
+  
+  const f1Parts = decompose(factor1);
+  const f2Parts = decompose(factor2);
+  
+  doc.strokeColor('#000000').lineWidth(1);
+  
+  // Handle different cases based on the complexity
+  if (f1Parts.length === 1 && f2Parts.length === 1) {
+    // Simple single-digit × single-digit
+    doc.rect(x, currentY, boxWidth, boxHeight).stroke();
+    doc.fontSize(labelFontSize)
+      .text('=', x + boxWidth + 5, currentY + boxHeight/2 - 3)
+      .text(`${factor1} × ${factor2}`, x + boxWidth + 20, currentY + boxHeight/2 - 3);
+    currentY += boxHeight + 10;
+    
+  } else if (f2Parts.length === 1) {
+    // Multi-digit × single-digit (e.g., 23 × 4)
+    f1Parts.forEach((part, index) => {
+      if (index > 0) {
+        doc.fontSize(fontSize).text('+', x - 15, currentY + boxHeight/2 - 5);
+      }
+      
+      doc.rect(x, currentY, boxWidth, boxHeight).stroke();
+      doc.fontSize(labelFontSize)
+        .text('=', x + boxWidth + 5, currentY + boxHeight/2 - 3)
+        .text(`${part} × ${factor2}`, x + boxWidth + 20, currentY + boxHeight/2 - 3);
+      
+      currentY += boxHeight + 5;
+    });
+    
+  } else {
+    // Multi-digit × multi-digit (e.g., 23 × 15) - Create proper grid
+    let boxY = currentY;
+    
+    f2Parts.forEach((f2Part, f2Index) => {
+      f1Parts.forEach((f1Part, f1Index) => {
+        if (f1Index > 0) {
+          doc.fontSize(fontSize).text('+', x - 15, boxY + boxHeight/2 - 5);
+        }
+        
+        doc.rect(x, boxY, boxWidth, boxHeight).stroke();
+        doc.fontSize(labelFontSize)
+          .text('=', x + boxWidth + 5, boxY + boxHeight/2 - 3)
+          .text(`${f1Part} × ${f2Part}`, x + boxWidth + 20, boxY + boxHeight/2 - 3);
+        
+        boxY += boxHeight + 5;
+      });
+      
+      // Add spacing between factor2 groups
+      if (f2Index < f2Parts.length - 1) {
+        boxY += 5;
+      }
+    });
+    
+    currentY = boxY;
+  }
+  
+  // Draw line for sum
+  doc.strokeColor('#000000').lineWidth(1.5);
+  doc.moveTo(x - 20, currentY)
+    .lineTo(x + boxWidth, currentY)
+    .stroke();
+  
+  currentY += 10;
+  
+  // Final answer box
+  doc.rect(x, currentY, boxWidth, boxHeight).stroke();
+  
+  // Option to show completed example or leave blank for students
+  const showAnswers = false; // Set to true for answer key
+  
+  if (showAnswers) {
+    doc.fontSize(labelFontSize);
+    let answerY = y + 30;
+    
+    // Fill in partial products
+    f2Parts.forEach(f2Part => {
+      f1Parts.forEach(f1Part => {
+        doc.text((f1Part * f2Part).toString(), x + 5, answerY + boxHeight/2 - 3);
+        answerY += boxHeight + 5;
+      });
+      answerY += 5; // Extra spacing between groups
+    });
+    
+    // Fill in final answer
+    doc.text((factor1 * factor2).toString(), x + 5, currentY + boxHeight/2 - 3);
+  }
+  
+  currentY += boxHeight + 5;
+  
+  // Restore state
+  doc.restore();
+  
+  return {
+    width: boxWidth + 150, // Include space for labels
+    height: currentY - y
+  };
+}
+
+/**
+ * Renders lattice multiplication grid
+ */
+export function renderLatticeMultiplication(
+  options: ToolVisualOptions & { factor1: number; factor2: number }
+): { width: number; height: number } {
+  const { doc, x, y, factor1, factor2 } = options;
+  const cellSize = 40;
+  const f1Str = factor1.toString();
+  const f2Str = factor2.toString();
+  const gridWidth = f1Str.length * cellSize;
+  const gridHeight = f2Str.length * cellSize;
+  
+  // Save current state
+  doc.save();
+  
+  // Draw the grid
+  doc.strokeColor('#374151').lineWidth(1);
+  
+  // Draw outer rectangle
+  doc.rect(x, y, gridWidth, gridHeight).stroke();
+  
+  // Draw vertical lines
+  for (let i = 1; i < f1Str.length; i++) {
+    doc.moveTo(x + i * cellSize, y)
+      .lineTo(x + i * cellSize, y + gridHeight)
+      .stroke();
+  }
+  
+  // Draw horizontal lines
+  for (let i = 1; i < f2Str.length; i++) {
+    doc.moveTo(x, y + i * cellSize)
+      .lineTo(x + gridWidth, y + i * cellSize)
+      .stroke();
+  }
+  
+  // Draw diagonal lines in each cell
+  for (let i = 0; i < f1Str.length; i++) {
+    for (let j = 0; j < f2Str.length; j++) {
+      const cellX = x + i * cellSize;
+      const cellY = y + j * cellSize;
+      doc.moveTo(cellX, cellY + cellSize)
+        .lineTo(cellX + cellSize, cellY)
+        .stroke();
+    }
+  }
+  
+  // Add digits along top and right
+  doc.fontSize(12).fillColor('#374151');
+  
+  // Top digits
+  for (let i = 0; i < f1Str.length; i++) {
+    doc.text(f1Str[i], x + i * cellSize + cellSize/2 - 5, y - 15);
+  }
+  
+  // Right digits
+  for (let i = 0; i < f2Str.length; i++) {
+    doc.text(f2Str[i], x + gridWidth + 5, y + i * cellSize + cellSize/2 - 5);
+  }
+  
+  // Fill in products (simplified - just showing structure)
+  doc.fontSize(10).fillColor('#6B7280');
+  for (let i = 0; i < f1Str.length; i++) {
+    for (let j = 0; j < f2Str.length; j++) {
+      const product = parseInt(f1Str[i]) * parseInt(f2Str[j]);
+      const tens = Math.floor(product / 10);
+      const ones = product % 10;
+      const cellX = x + i * cellSize;
+      const cellY = y + j * cellSize;
+      
+      if (tens > 0) {
+        doc.text(tens.toString(), cellX + 5, cellY + 5);
+      }
+      doc.text(ones.toString(), cellX + cellSize - 15, cellY + cellSize - 15);
+    }
+  }
+  
+  // Restore state
+  doc.restore();
+  
+  return {
+    width: gridWidth + 20,
+    height: gridHeight + 20
+  };
+}
+
+/**
+ * Renders decomposition method visualization
+ */
+export function renderDecompositionMethod(
+  options: ToolVisualOptions & { number: number; operation: 'add' | 'subtract' | 'multiply' }
+): { width: number; height: number } {
+  const { doc, x, y, number, operation } = options;
+  const fontSize = 12;
+  const lineSpacing = 20;
+  let currentY = y;
+  
+  // Save current state
+  doc.save();
+  
+  // Decompose the number into place values
+  const numStr = number.toString();
+  const placeValues: number[] = [];
+  
+  for (let i = 0; i < numStr.length; i++) {
+    const digit = parseInt(numStr[i]);
+    const placeValue = Math.pow(10, numStr.length - i - 1);
+    if (digit > 0) {
+      placeValues.push(digit * placeValue);
+    }
+  }
+  
+  // Show original number
+  doc.fontSize(fontSize)
+    .fillColor('#374151')
+    .text(`${number} =`, x, currentY);
+  
+  // Show decomposition
+  const decompositionText = placeValues.join(' + ');
+  doc.text(decompositionText, x + 50, currentY);
+  currentY += lineSpacing * 1.5;
+  
+  // Show visual blocks for each place value
+  doc.strokeColor('#374151').lineWidth(1);
+  placeValues.forEach((value, index) => {
+    const blockWidth = Math.min(value.toString().length * 10 + 20, 100);
+    doc.fillColor(index === 0 ? '#3B82F6' : index === 1 ? '#10B981' : '#F59E0B')
+      .rect(x, currentY, blockWidth, 15)
+      .fill();
+    doc.fillColor('#FFFFFF')
+      .fontSize(10)
+      .text(value.toString(), x + 5, currentY + 2);
+    currentY += 20;
+  });
+  
+  // Restore state
+  doc.restore();
+  
+  return {
+    width: 150,
+    height: currentY - y
+  };
+}
+
+/**
+ * Renders counters (circles) for basic operations
+ */
+export function renderCounters(
+  options: ToolVisualOptions & { count: number; groupSize?: number }
+): { width: number; height: number } {
+  const { doc, x, y, count, groupSize = 10 } = options;
+  const counterRadius = 8;
+  const spacing = 5;
+  const countersPerRow = Math.min(groupSize, 10);
+  let currentX = x;
+  let currentY = y;
+  let maxX = x;
+  
+  // Save current state
+  doc.save();
+  
+  for (let i = 0; i < count; i++) {
+    // Draw counter
+    doc.fillColor('#EF4444')
+      .circle(currentX + counterRadius, currentY + counterRadius, counterRadius)
+      .fill();
+    doc.strokeColor('#374151')
+      .lineWidth(0.5)
+      .circle(currentX + counterRadius, currentY + counterRadius, counterRadius)
+      .stroke();
+    
+    // Move to next position
+    if ((i + 1) % countersPerRow === 0 && i < count - 1) {
+      currentX = x;
+      currentY += counterRadius * 2 + spacing;
+      
+      // Add group separator
+      if ((i + 1) % groupSize === 0) {
+        currentY += spacing * 2;
+      }
+    } else {
+      currentX += counterRadius * 2 + spacing;
+      maxX = Math.max(maxX, currentX);
+    }
+  }
+  
+  // Restore state
+  doc.restore();
+  
+  return {
+    width: maxX - x + counterRadius * 2,
+    height: currentY - y + counterRadius * 2
+  };
+}
+
+/**
+ * Renders pattern blocks
+ */
+export function renderPatternBlocks(
+  options: ToolVisualOptions & { 
+    shapes: Array<'hexagon' | 'trapezoid' | 'rhombus' | 'triangle' | 'square'>;
+  }
+): { width: number; height: number } {
+  const { doc, x, y, shapes } = options;
+  const blockSize = 30;
+  const spacing = 10;
+  let currentX = x;
+  let maxHeight = 0;
+  
+  // Save current state
+  doc.save();
+  
+  shapes.forEach(shape => {
+    switch (shape) {
+      case 'hexagon':
+        doc.fillColor('#FBBF24'); // Yellow
+        drawHexagon(doc, currentX + blockSize/2, y + blockSize/2, blockSize/2);
+        break;
+      case 'trapezoid':
+        doc.fillColor('#EF4444'); // Red
+        drawTrapezoid(doc, currentX, y, blockSize);
+        break;
+      case 'rhombus':
+        doc.fillColor('#3B82F6'); // Blue
+        drawRhombus(doc, currentX, y, blockSize);
+        break;
+      case 'triangle':
+        doc.fillColor('#10B981'); // Green
+        drawTriangle(doc, currentX, y, blockSize);
+        break;
+      case 'square':
+        doc.fillColor('#F97316'); // Orange
+        doc.rect(currentX, y, blockSize, blockSize).fill();
+        break;
+    }
+    
+    // Add outline
+    doc.strokeColor('#374151').lineWidth(1).stroke();
+    
+    currentX += blockSize + spacing;
+    maxHeight = Math.max(maxHeight, blockSize);
+  });
+  
+  // Restore state
+  doc.restore();
+  
+  return {
+    width: currentX - x - spacing,
+    height: maxHeight
+  };
+  
+  // Helper functions for drawing shapes
+  function drawHexagon(doc: any, cx: number, cy: number, radius: number) {
+    const angles = [0, 60, 120, 180, 240, 300];
+    doc.moveTo(
+      cx + radius * Math.cos(angles[0] * Math.PI / 180),
+      cy + radius * Math.sin(angles[0] * Math.PI / 180)
+    );
+    for (let i = 1; i < angles.length; i++) {
+      doc.lineTo(
+        cx + radius * Math.cos(angles[i] * Math.PI / 180),
+        cy + radius * Math.sin(angles[i] * Math.PI / 180)
+      );
+    }
+    doc.closePath();
+  }
+  
+  function drawTrapezoid(doc: any, x: number, y: number, size: number) {
+    doc.moveTo(x + size * 0.2, y);
+    doc.lineTo(x + size * 0.8, y);
+    doc.lineTo(x + size, y + size);
+    doc.lineTo(x, y + size);
+    doc.closePath();
+  }
+  
+  function drawRhombus(doc: any, x: number, y: number, size: number) {
+    doc.moveTo(x + size/2, y);
+    doc.lineTo(x + size, y + size/2);
+    doc.lineTo(x + size/2, y + size);
+    doc.lineTo(x, y + size/2);
+    doc.closePath();
+  }
+  
+  function drawTriangle(doc: any, x: number, y: number, size: number) {
+    doc.moveTo(x + size/2, y);
+    doc.lineTo(x + size, y + size);
+    doc.lineTo(x, y + size);
+    doc.closePath();
+  }
+}

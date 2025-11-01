@@ -16,7 +16,12 @@ export type MathematicalTool =
   | 'arrays'
   | 'hundreds_charts'
   | 'geoboards'
-  | 'money_manipulatives';
+  | 'money_manipulatives'
+  | 'partial_products'
+  | 'lattice_multiplication'
+  | 'decomposition_method'
+  | 'counters'
+  | 'pattern_blocks';
 
 export type ProblemSolvingStrategy =
   | 'none'
@@ -30,7 +35,7 @@ export type ProblemSolvingStrategy =
   | 'error_analysis';
 
 export type ScaffoldingLevel = 'none' | 'guided' | 'heavy';
-export type RepresentationType = 'concrete' | 'pictorial' | 'abstract' | 'mixed';
+export type RepresentationType = 'concrete' | 'pictorial' | 'abstract' | 'mixed' | 'word_problems';
 
 export interface GenerateWorksheetRequest {
   gradeLevel: GradeLevel;
@@ -77,7 +82,12 @@ export type VisualAidType =
   | 'clock_face'
   | 'money_display'
   | 'coordinate_grid'
-  | 'measurement_tools';
+  | 'measurement_tools'
+  | 'partial_products'
+  | 'lattice_multiplication'
+  | 'decomposition_method'
+  | 'counters'
+  | 'pattern_blocks';
 
 export interface VisualAid {
   type: VisualAidType;
@@ -138,6 +148,14 @@ export interface VisualAid {
   unit?: string;
   measurement?: number;
   scale?: number;
+  
+  // Partial Products & New Mathematical Tools
+  factor1?: number;
+  factor2?: number;
+  number?: number;
+  operation?: 'add' | 'subtract' | 'multiply';
+  groupSize?: number;
+  shapes?: Array<'hexagon' | 'trapezoid' | 'rhombus' | 'triangle' | 'square'>;
 }
 
 export interface WorksheetData {

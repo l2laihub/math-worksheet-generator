@@ -12,7 +12,7 @@ const DebugPromptSchema = z.object({
   mathematicalTools: z.array(z.string()).optional(),
   problemSolvingStrategy: z.string().optional(),
   scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
-  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
+  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed', 'word_problems']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
 });
 

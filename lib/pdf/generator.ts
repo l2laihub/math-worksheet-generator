@@ -10,7 +10,12 @@ import {
   renderNumberLine, 
   renderFractionBar,
   renderMoney,
-  renderGeoboard 
+  renderGeoboard,
+  renderPartialProducts,
+  renderLatticeMultiplication,
+  renderDecompositionMethod,
+  renderCounters,
+  renderPatternBlocks
 } from './tool-visual-renderer';
 
 export interface PDFGenerationOptions {
@@ -261,7 +266,8 @@ function createPDF(options: PDFGenerationOptions): Promise<Buffer> {
             if (step.visualization) {
               // Check if we should render a visual element
               const visualY = doc.y + 2;
-              const visualRendered = renderToolExampleVisual(doc, example.toolId, step, 65, visualY, doc.page.width - 120);
+              const stepWithContext = { ...step, parentProblem: example.problem };
+              const visualRendered = renderToolExampleVisual(doc, example.toolId, stepWithContext, 65, visualY, doc.page.width - 120);
               
               if (!visualRendered) {
                 // Fall back to text visualization if no visual was rendered
@@ -632,6 +638,145 @@ function renderToolExampleVisual(
         });
         doc.y = y + dimensions.height + 5;
         return true;
+      }
+      break;
+      
+    case 'partial_products':
+      // Handle partial products visualization
+      if (step.number === 4 && vizText.includes('Box Method')) {
+        // Render partial products using the box method for step 4
+        const problemText = (step as any).parentProblem || '23 × 15';
+        const factorMatch = problemText.match(/(\d+)\s*×\s*(\d+)/);
+        if (factorMatch) {
+          const factor1 = parseInt(factorMatch[1]);
+          const factor2 = parseInt(factorMatch[2]);
+          const dimensions = renderPartialProducts({
+            doc: doc as any,
+            x,
+            y,
+            maxWidth,
+            factor1,
+            factor2
+          });
+          doc.y = y + dimensions.height + 5;
+          return true;
+        }
+      } else if (step.number === 2 && vizText.includes('×')) {
+        // For step 2, show the multiplication breakdown in a cleaner format
+        doc.save();
+        doc.fontSize(9)
+          .fillColor('#374151')
+          .font('Helvetica');
+        
+        const lines = vizText.split('\n');
+        lines.forEach((line: string, index: number) => {
+          if (line.trim()) {
+            doc.text(`   ${line}`, x, doc.y + (index * 12));
+          }
+        });
+        doc.y += lines.length * 12 + 5;
+        doc.restore();
+        return true;
+      }
+      break;
+      
+    case 'area_models':
+      // Handle area models visualization
+      if (step.number === 2 && vizText.includes('grid')) {
+        // For step 2, show a visual grid representation
+        doc.save();
+        doc.fontSize(8)
+          .fillColor('#374151')
+          .font('Courier');
+        
+        const lines = vizText.split('\n');
+        lines.forEach((line: string, index: number) => {
+          if (line.trim()) {
+            doc.text(`   ${line}`, x, doc.y + (index * 10));
+          }
+        });
+        doc.y += lines.length * 10 + 5;
+        doc.restore();
+        return true;
+      }
+      break;
+      
+    case 'bar_models':
+      // Handle bar models visualization
+      if (vizText.includes('Split bar:') && (step.number === 2)) {
+        // Render a simple bar model for step 2
+        doc.save();
+        
+        // Parse the problem to extract numbers
+        const parentProblem = (step as any).parentProblem || '';
+        let total = 24, used = 8; // defaults
+        
+        const totalMatch = parentProblem.match(/(\d+(?:\.\d+)?)/);
+        const usedMatch = parentProblem.match(/(\d+(?:\.\d+)?)\s+(?:stickers|cups)/);
+        
+        if (totalMatch) total = parseFloat(totalMatch[1]);
+        if (usedMatch) used = parseFloat(usedMatch[1]);
+        
+        // Draw a simple bar
+        const barWidth = 200;
+        const barHeight = 20;
+        const usedWidth = (used / total) * barWidth;
+        const remainingWidth = barWidth - usedWidth;
+        
+        // Used portion (filled)
+        doc.fillColor('#3B82F6')
+          .rect(x, y, usedWidth, barHeight)
+          .fill();
+          
+        // Remaining portion (outline)
+        doc.strokeColor('#374151')
+          .lineWidth(1)
+          .rect(x + usedWidth, y, remainingWidth, barHeight)
+          .stroke();
+          
+        // Border around whole bar
+        doc.strokeColor('#374151')
+          .lineWidth(2)
+          .rect(x, y, barWidth, barHeight)
+          .stroke();
+          
+        // Labels
+        doc.fontSize(8)
+          .fillColor('#374151')
+          .text(`${used}`, x + usedWidth/2 - 10, y + barHeight + 5)
+          .text(`${total - used}`, x + usedWidth + remainingWidth/2 - 10, y + barHeight + 5);
+        
+        doc.y = y + barHeight + 20;
+        doc.restore();
+        return true;
+      }
+      break;
+      
+    case 'number_lines':
+      // Handle number line visualization
+      if (step.number === 2 && vizText.includes('jump')) {
+        // Extract start and end numbers from problem and visualization
+        const parentProblem = (step as any).parentProblem || '';
+        const startMatch = vizText.match(/(\d+(?:\.\d+)?)/);
+        const endMatch = parentProblem.match(/(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)/);
+        
+        if (startMatch && endMatch) {
+          const start = parseFloat(endMatch[1]);
+          const jump = parseFloat(endMatch[2]);
+          const end = start + jump;
+          
+          const dimensions = renderNumberLine({
+            doc: doc as any,
+            x,
+            y,
+            maxWidth,
+            start: Math.max(0, start - 2),
+            end: end + 2,
+            highlights: [start, end]
+          });
+          doc.y = y + dimensions.height + 5;
+          return true;
+        }
       }
       break;
   }

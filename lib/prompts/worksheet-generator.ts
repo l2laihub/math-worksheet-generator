@@ -4,7 +4,7 @@
  */
 
 import { TOPICS } from '@/lib/constants/topics';
-import { MATHEMATICAL_TOOLS, PROBLEM_SOLVING_STRATEGIES, type ToolDefinition, type StrategyDefinition } from '@/lib/constants/pedagogical-tools';
+import { MATHEMATICAL_TOOLS, PROBLEM_SOLVING_STRATEGIES, getToolsForTopicAndGrade, type ToolDefinition, type StrategyDefinition } from '@/lib/constants/pedagogical-tools';
 import { getToolExamples } from '@/lib/constants/tool-examples';
 import type { MathematicalTool, ProblemSolvingStrategy, ScaffoldingLevel, RepresentationType } from '@/types/worksheet';
 
@@ -27,8 +27,8 @@ export interface WorksheetProblem {
   question: string;
   answer: string | number;
   visualAid?: {
-    type: 'countable_objects' | 'grouped_objects' | 'array' | 'number_line' | 'fraction_circle';
-    item: string;
+    type: 'countable_objects' | 'grouped_objects' | 'array' | 'number_line' | 'fraction_circle' | 'partial_products' | 'lattice_multiplication' | 'decomposition_method' | 'counters' | 'pattern_blocks';
+    item?: string;
     count?: number;
     groups?: Array<{ item: string; count: number }>;
     rows?: number;
@@ -38,6 +38,12 @@ export interface WorksheetProblem {
     highlights?: number[];
     numerator?: number;
     denominator?: number;
+    factor1?: number;
+    factor2?: number;
+    number?: number;
+    operation?: 'add' | 'subtract' | 'multiply';
+    groupSize?: number;
+    shapes?: Array<'hexagon' | 'trapezoid' | 'rhombus' | 'triangle' | 'square'>;
   };
   workingSpace?: boolean;
 }
@@ -78,6 +84,7 @@ export function generateWorksheetPrompt(params: WorksheetParams): string {
 
   // Get selected tools and strategies
   // IMPORTANT: If abstract representation is selected, we should not use tools
+  // Word problems can use tools for educational examples but problems focus on story context
   const shouldUseTool = representationType !== 'abstract';
   const selectedTools = shouldUseTool ? 
     mathematicalTools.map(toolId => 
@@ -107,7 +114,7 @@ Each requirement marked as "MANDATORY" or "FORBIDDEN" must be strictly enforced.
 2. **Problem Variety**:
    - Mix computation problems with word problems
    - Include at least 2-3 word problems using the "${theme}" theme
-   - Vary problem formats to maintain engagement${generateToolInstructions(selectedTools)}${generateStrategyInstructions(selectedStrategy)}${generateScaffoldingInstructions(scaffoldingLevel)}${generateRepresentationInstructions(representationType, selectedTools, mathematicalTools)}${generateThinkingPromptsInstructions(includeThinkingPrompts)}${generateToolExamplesInstructions(selectedTools, gradeLevel, topic, includeToolExamples, representationType, mathematicalTools)}
+   - Vary problem formats to maintain engagement${generateToolInstructions(selectedTools)}${generateStrategyInstructions(selectedStrategy)}${generateScaffoldingInstructions(scaffoldingLevel)}${generateRepresentationInstructions(representationType, selectedTools, mathematicalTools, theme)}${generateThinkingPromptsInstructions(includeThinkingPrompts)}${generateToolExamplesInstructions(selectedTools, gradeLevel, topic, includeToolExamples, representationType, mathematicalTools)}
 
 3. **Visual Aids** (SIMPLE RULES):
    - For grades 1-3: Include visual aids for 60-80% of problems
@@ -157,6 +164,12 @@ Each requirement marked as "MANDATORY" or "FORBIDDEN" must be strictly enforced.
         ]
       },
       "workingSpace": true
+    },
+    {
+      "id": 2,
+      "question": "Calculate: 7 × 4 = ?",
+      "answer": "28",
+      "workingSpace": true
     }
   ],
   "metadata": {
@@ -170,20 +183,24 @@ Each requirement marked as "MANDATORY" or "FORBIDDEN" must be strictly enforced.
 \`\`\`
 
 **CRITICAL JSON RULES:**
+- **MANDATORY**: Every problem MUST have "question" AND "answer" fields
 - Use double quotes for all strings
 - No trailing commas
 - No comments in JSON
 - Escape special characters in strings
 - Keep visualAid simple: use only "type", "item", "count", "groups", "rows", "cols"
 - For large numbers (>12), omit visualAid entirely
+- **REQUIRED**: "answer" field must contain the solution (never empty/null)
 
 ⚠️  **FINAL COMPLIANCE CHECK** ⚠️
 Before submitting your response, verify:
+✓ EVERY problem has BOTH "question" AND "answer" fields (CRITICAL)
 ${selectedTools.length > 0 ? `✓ AT LEAST 60% of problems use these tools: ${selectedTools.map(t => t.name).join(', ')}` : ''}
 ${selectedStrategy ? `✓ AT LEAST 40% of problems use strategy: ${selectedStrategy.name}` : ''}
 ${representationType === 'concrete' ? '✓ ALL problems use physical manipulatives/objects ONLY' : ''}
 ${representationType === 'pictorial' ? '✓ ALL problems include visual diagrams/pictures' : ''}
 ${representationType === 'abstract' ? '✓ ALL problems use numbers/symbols ONLY (NO visuals)' : ''}
+${representationType === 'word_problems' ? '✓ ALL problems are story-based word problems ONLY' : ''}
 ${scaffoldingLevel === 'none' ? '✓ NO hints or guidance provided' : ''}
 ${scaffoldingLevel === 'guided' ? '✓ 70% of problems include helpful hints' : ''}
 ${scaffoldingLevel === 'heavy' ? '✓ ALL complex problems broken into steps' : ''}
@@ -191,12 +208,14 @@ ${includeThinkingPrompts ? '✓ 60% of problems include "Explain Your Thinking" 
 
 🚨 FAILURE TO MEET THESE REQUIREMENTS WILL RESULT IN REJECTION 🚨
 
+**CRITICAL REMINDER**: Each problem MUST include both "question" and "answer" fields!
+
 Generate the complete worksheet now with ${problemCount} problems.`;
 }
 
 function getThemeItems(theme: string): string {
   const themeItems: Record<string, string> = {
-    animals: 'dog, cat, rabbit, bear, fish',
+    animals: 'dog, cat, rabbit, bear, fish, bird',
     space: 'star, sun, moon, rocket',
     sports: 'car (racing), circle (ball), square (base)',
     food: 'apple, banana, orange, strawberry, cookie, pizza, carrot',
@@ -464,7 +483,7 @@ function generateScaffoldingInstructions(scaffoldingLevel: ScaffoldingLevel): st
 /**
  * Generate representation type instructions
  */
-function generateRepresentationInstructions(representationType: RepresentationType, selectedTools: ToolDefinition[], originalTools: string[] = []): string {
+function generateRepresentationInstructions(representationType: RepresentationType, selectedTools: ToolDefinition[], originalTools: string[] = [], theme: string = ''): string {
   const instructions = {
     concrete: `
 
@@ -510,10 +529,23 @@ function generateRepresentationInstructions(representationType: RepresentationTy
    - Include some concrete problems (with manipulatives)
    - Include some pictorial problems (with visual aids) 
    - Include some abstract problems (pure computation)
-   - Progress from concrete to abstract within the problem set when possible`
+   - Progress from concrete to abstract within the problem set when possible`,
+   
+    word_problems: `
+
+6. **Representation Focus - Word Problems Only** (MANDATORY):
+   **CRITICAL**: ALL problems must be story-based word problems ONLY:
+   - Every problem must have a real-world context or scenario
+   - NO computation-only problems (like "7 × 8 = ?")
+   - NO problems without context or story elements
+   - Use rich narratives with characters, situations, and realistic scenarios
+   - Incorporate the "${theme}" theme heavily throughout all problems
+   - Focus on application and problem-solving in meaningful contexts
+   - Examples: "Sarah has 24 stickers and wants to share them equally among 6 friends" NOT "24 ÷ 6 = ?"
+   - Include multi-step word problems that require planning and reasoning`
   };
   
-  return instructions[representationType];
+  return instructions[representationType] || '';
 }
 
 /**
@@ -552,7 +584,12 @@ function generateVisualAidInstructions(selectedTools: ToolDefinition[]): string 
     number_lines: '\n   - number_line: Enhanced number lines\n     `"visualAid": { "type": "number_line", "start": 0, "end": 20, "highlights": [7, 15] }`',
     arrays: '\n   - array: Grid arrangements (already available above)',
     hundreds_charts: '\n   - hundreds_chart: Number pattern charts\n     `"visualAid": { "type": "hundreds_chart", "chartStart": 1, "chartEnd": 100, "highlightedNumbers": [25, 50, 75] }`',
-    money_manipulatives: '\n   - money_display: Coins and bills\n     `"visualAid": { "type": "money_display", "dollars": 2, "quarters": 3, "dimes": 1 }`'
+    money_manipulatives: '\n   - money_display: Coins and bills\n     `"visualAid": { "type": "money_display", "dollars": 2, "quarters": 3, "dimes": 1 }`',
+    partial_products: '\n   - partial_products: Grid-based multiplication breakdown\n     `"visualAid": { "type": "partial_products", "factor1": 23, "factor2": 15 }`',
+    lattice_multiplication: '\n   - lattice_multiplication: Grid multiplication method\n     `"visualAid": { "type": "lattice_multiplication", "factor1": 34, "factor2": 26 }`',
+    decomposition_method: '\n   - decomposition_method: Place value breakdown\n     `"visualAid": { "type": "decomposition_method", "number": 345, "operation": "add" }`',
+    counters: '\n   - counters: Physical counting objects\n     `"visualAid": { "type": "counters", "count": 12, "groupSize": 5 }`',
+    pattern_blocks: '\n   - pattern_blocks: Geometric pattern shapes\n     `"visualAid": { "type": "pattern_blocks", "shapes": ["hexagon", "trapezoid", "triangle"] }`'
   };
   
   const toolVisuals = selectedTools
@@ -584,10 +621,29 @@ function generateToolExamplesInstructions(
     ).filter(Boolean) as ToolDefinition[] : 
     selectedTools;
   
-  if (toolsForExamples.length === 0) return '';
+  // If no tools selected but examples requested, auto-select relevant tools for the topic
+  let finalToolsForExamples = toolsForExamples;
+  if (toolsForExamples.length === 0) {
+    // Auto-select topic-appropriate tools when none are specified
+    const autoSelectedTools = getToolsForTopicAndGrade(topic, gradeLevel);
+    
+    // If no topic-specific tools found, use general grade-appropriate tools
+    if (autoSelectedTools.length === 0) {
+      // Fallback to general tools that work for the grade level
+      const generalTools = MATHEMATICAL_TOOLS.filter(tool => 
+        tool.grades.includes(gradeLevel)
+      );
+      finalToolsForExamples = generalTools.slice(0, 3);
+    } else {
+      // Limit to 2-3 most relevant tools to avoid overwhelming
+      finalToolsForExamples = autoSelectedTools.slice(0, 3);
+    }
+  }
+  
+  if (finalToolsForExamples.length === 0) return '';
   
   const toolExamples = getToolExamples(
-    toolsForExamples.map(t => t.id), 
+    finalToolsForExamples.map(t => t.id), 
     gradeLevel, 
     topic
   );
@@ -614,7 +670,7 @@ function generateToolExamplesInstructions(
 8. **Tool Usage Examples** (MANDATORY SECTION):
    **CRITICAL**: Since tool examples are requested, include a dedicated "Tool Usage Examples" section:
    - Add this section BEFORE the main problems
-   - Show step-by-step examples for tools: ${toolsForExamples.map(t => t.name).join(', ')}
+   - Show step-by-step examples for tools: ${finalToolsForExamples.map(t => t.name).join(', ')}
    - Use these specific examples:
    
     ${exampleText}${abstractNote}

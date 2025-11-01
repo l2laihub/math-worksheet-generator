@@ -32,7 +32,7 @@ const formSchema = z.object({
   mathematicalTools: z.array(z.string()).optional(),
   problemSolvingStrategy: z.string().optional(),
   scaffoldingLevel: z.enum(['none', 'guided', 'heavy']).optional(),
-  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed']).optional(),
+  representationType: z.enum(['concrete', 'pictorial', 'abstract', 'mixed', 'word_problems']).optional(),
   includeThinkingPrompts: z.boolean().optional(),
   includeToolExamples: z.boolean().optional(),
 });
@@ -542,17 +542,20 @@ export default function GeneratePage() {
                     name="representationType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base font-semibold text-gray-900">🔄 Representation</FormLabel>
+                        <FormLabel className="text-base font-semibold text-gray-900">🔄 Problem Type</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-12 bg-white text-gray-900 transition-all hover:border-primary">
-                              <SelectValue placeholder="Choose representation type" />
+                              <SelectValue placeholder="Choose problem type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {REPRESENTATION_TYPES.map((type) => (
-                              <SelectItem key={type.id} value={type.id}>
-                                {type.name}
+                              <SelectItem key={type.id} value={type.id} className="py-3">
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{type.name}</span>
+                                  <span className="text-xs text-gray-500 mt-1">{type.description}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -565,10 +568,21 @@ export default function GeneratePage() {
                         {selectedRepresentation === 'abstract' && selectedToolsCount > 0 && (
                           <div className="mt-2 rounded-md bg-blue-50 p-2 text-xs">
                             <p className="text-blue-800">
-                              <span className="font-semibold">ℹ️ Note:</span> Abstract representation focuses on pure numbers and symbols. 
+                              <span className="font-semibold">ℹ️ Note:</span> Numbers Only focuses on pure mathematical computation. 
                               {includeToolExamples 
-                                ? 'Tool examples will be shown for educational reference, but problems will use abstract representation.'
+                                ? 'Tool examples will be shown for educational reference, but problems will focus on numbers and symbols.'
                                 : 'Mathematical tools will not be used in the problems.'
+                              }
+                            </p>
+                          </div>
+                        )}
+                        {selectedRepresentation === 'word_problems' && selectedToolsCount > 0 && (
+                          <div className="mt-2 rounded-md bg-green-50 p-2 text-xs">
+                            <p className="text-green-800">
+                              <span className="font-semibold">ℹ️ Note:</span> Word Problems Only focuses on story-based contexts and scenarios. 
+                              {includeToolExamples 
+                                ? 'Tool examples will be shown for educational reference, but all problems will be story-based word problems.'
+                                : 'Selected tools will be integrated into word problem contexts.'
                               }
                             </p>
                           </div>

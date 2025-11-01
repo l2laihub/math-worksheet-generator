@@ -12,6 +12,13 @@
 
 import type PDFDocument from 'pdfkit';
 import { renderSVGAsset, renderSVGGrid, renderSVGRow } from './svg-renderer';
+import { 
+  renderPartialProducts,
+  renderLatticeMultiplication,
+  renderDecompositionMethod,
+  renderCounters,
+  renderPatternBlocks
+} from './tool-visual-renderer';
 
 /**
  * Visual Pattern Types
@@ -24,7 +31,12 @@ export type VisualPattern =
   | { type: 'fraction_circle'; numerator: number; denominator: number }
   | { type: 'fraction_bars'; numerator: number; denominator: number }
   | { type: 'division_groups'; dividend: number; divisor: number; quotient: number; item: string }
-  | { type: 'sample_count'; item: string; totalCount: number; sampleCount: number };
+  | { type: 'sample_count'; item: string; totalCount: number; sampleCount: number }
+  | { type: 'partial_products'; factor1: number; factor2: number }
+  | { type: 'lattice_multiplication'; factor1: number; factor2: number }
+  | { type: 'decomposition_method'; number: number; operation: 'add' | 'subtract' | 'multiply' }
+  | { type: 'counters'; count: number; groupSize?: number }
+  | { type: 'pattern_blocks'; shapes: Array<'hexagon' | 'trapezoid' | 'rhombus' | 'triangle' | 'square'> };
 
 /**
  * Visual Pattern Renderer Class
@@ -466,6 +478,105 @@ export class VisualPatternRenderer {
   }
 
   /**
+   * Pattern 8: Partial Products
+   * Render partial products visualization using the tool renderer
+   */
+  static renderPartialProducts(
+    doc: typeof PDFDocument,
+    pattern: { factor1: number; factor2: number },
+    x: number,
+    y: number
+  ): void {
+    renderPartialProducts({
+      doc,
+      x,
+      y,
+      maxWidth: 300,
+      factor1: pattern.factor1,
+      factor2: pattern.factor2
+    });
+  }
+
+  /**
+   * Pattern 9: Lattice Multiplication
+   * Render lattice multiplication grid using the tool renderer
+   */
+  static renderLatticeMultiplication(
+    doc: typeof PDFDocument,
+    pattern: { factor1: number; factor2: number },
+    x: number,
+    y: number
+  ): void {
+    renderLatticeMultiplication({
+      doc,
+      x,
+      y,
+      maxWidth: 300,
+      factor1: pattern.factor1,
+      factor2: pattern.factor2
+    });
+  }
+
+  /**
+   * Pattern 10: Decomposition Method
+   * Render number decomposition using the tool renderer
+   */
+  static renderDecompositionMethod(
+    doc: typeof PDFDocument,
+    pattern: { number: number; operation: 'add' | 'subtract' | 'multiply' },
+    x: number,
+    y: number
+  ): void {
+    renderDecompositionMethod({
+      doc,
+      x,
+      y,
+      maxWidth: 300,
+      number: pattern.number,
+      operation: pattern.operation
+    });
+  }
+
+  /**
+   * Pattern 11: Counters
+   * Render counting objects using the tool renderer
+   */
+  static renderCounters(
+    doc: typeof PDFDocument,
+    pattern: { count: number; groupSize?: number },
+    x: number,
+    y: number
+  ): void {
+    renderCounters({
+      doc,
+      x,
+      y,
+      maxWidth: 300,
+      count: pattern.count,
+      groupSize: pattern.groupSize
+    });
+  }
+
+  /**
+   * Pattern 12: Pattern Blocks
+   * Render geometric pattern blocks using the tool renderer
+   */
+  static renderPatternBlocks(
+    doc: typeof PDFDocument,
+    pattern: { shapes: Array<'hexagon' | 'trapezoid' | 'rhombus' | 'triangle' | 'square'> },
+    x: number,
+    y: number
+  ): void {
+    renderPatternBlocks({
+      doc,
+      x,
+      y,
+      maxWidth: 300,
+      shapes: pattern.shapes
+    });
+  }
+
+  /**
    * Render any visual pattern based on type
    *
    * @param doc - PDFKit document
@@ -512,6 +623,26 @@ export class VisualPatternRenderer {
 
       case 'sample_count':
         this.renderSampleCount(doc, pattern, x, y, maxWidth);
+        break;
+
+      case 'partial_products':
+        this.renderPartialProducts(doc, pattern, x, y);
+        break;
+
+      case 'lattice_multiplication':
+        this.renderLatticeMultiplication(doc, pattern, x, y);
+        break;
+
+      case 'decomposition_method':
+        this.renderDecompositionMethod(doc, pattern, x, y);
+        break;
+
+      case 'counters':
+        this.renderCounters(doc, pattern, x, y);
+        break;
+
+      case 'pattern_blocks':
+        this.renderPatternBlocks(doc, pattern, x, y);
         break;
 
       default:
@@ -608,6 +739,60 @@ export function getPatternDimensions(pattern: VisualPattern, maxWidth: number = 
       return {
         width: maxWidth,
         height: rows * 35 + 25, // Extra space for total count text
+      };
+    }
+
+    case 'partial_products': {
+      const f1Digits = pattern.factor1.toString().length;
+      const f2Digits = pattern.factor2.toString().length;
+      
+      // Calculate number of partial products needed
+      const f1Parts = f1Digits > 1 ? 2 : 1; // typically tens + ones for 2-digit
+      const f2Parts = f2Digits > 1 ? 2 : 1;
+      const totalBoxes = f1Parts * f2Parts;
+      
+      // Height: header + boxes + final answer + padding
+      const boxHeight = 25;
+      const totalHeight = 30 + (totalBoxes * (boxHeight + 5)) + 15 + boxHeight + 10;
+      
+      return {
+        width: 200, // Fixed width to prevent overlap
+        height: totalHeight,
+      };
+    }
+
+    case 'lattice_multiplication': {
+      const f1Digits = pattern.factor1.toString().length;
+      const f2Digits = pattern.factor2.toString().length;
+      return {
+        width: f1Digits * 40 + 20,
+        height: f2Digits * 40 + 20,
+      };
+    }
+
+    case 'decomposition_method': {
+      const numDigits = pattern.number.toString().length;
+      return {
+        width: 150,
+        height: numDigits * 20 + 40, // Space for each place value plus header
+      };
+    }
+
+    case 'counters': {
+      const countersPerRow = Math.min(pattern.groupSize || 10, 10);
+      const rows = Math.ceil(pattern.count / countersPerRow);
+      return {
+        width: countersPerRow * 20,
+        height: rows * 20 + 10,
+      };
+    }
+
+    case 'pattern_blocks': {
+      const blocksPerRow = Math.min(pattern.shapes.length, 6);
+      const rows = Math.ceil(pattern.shapes.length / blocksPerRow);
+      return {
+        width: blocksPerRow * 40,
+        height: rows * 40,
       };
     }
 

@@ -62,7 +62,9 @@
       "mcp__supabase__get_logs",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

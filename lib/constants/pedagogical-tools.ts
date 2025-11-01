@@ -102,6 +102,46 @@ export const MATHEMATICAL_TOOLS: ToolDefinition[] = [
     grades: [1, 2, 3, 4],
     subjects: ['money-coins', 'decimals'],
     icon: '💰'
+  },
+  {
+    id: 'partial_products',
+    name: 'Partial Products',
+    description: 'Break multiplication into smaller, manageable parts',
+    grades: [3, 4, 5, 6],
+    subjects: ['multiplication-multi-digit', 'multiplication-basic'],
+    icon: '📝'
+  },
+  {
+    id: 'lattice_multiplication',
+    name: 'Lattice Multiplication',
+    description: 'Grid-based method for multi-digit multiplication',
+    grades: [4, 5, 6],
+    subjects: ['multiplication-multi-digit'],
+    icon: '🔷'
+  },
+  {
+    id: 'decomposition_method',
+    name: 'Decomposition Method',
+    description: 'Breaking numbers into place values for operations',
+    grades: [2, 3, 4, 5],
+    subjects: ['addition-regrouping', 'subtraction-regrouping', 'multiplication-basic'],
+    icon: '🔢'
+  },
+  {
+    id: 'counters',
+    name: 'Counters',
+    description: 'Physical objects for counting and basic operations',
+    grades: [1, 2, 3],
+    subjects: ['counting', 'addition-basic', 'subtraction-basic', 'skip-counting'],
+    icon: '⭕'
+  },
+  {
+    id: 'pattern_blocks',
+    name: 'Pattern Blocks',
+    description: 'Geometric shapes for patterns, fractions, and spatial reasoning',
+    grades: [1, 2, 3, 4, 5],
+    subjects: ['patterns-sequences', 'shapes-2d', 'fractions-basic', 'symmetry'],
+    icon: '🔶'
   }
 ];
 
@@ -201,23 +241,28 @@ export const REPRESENTATION_TYPES: Array<{
 }> = [
   {
     id: 'concrete',
-    name: 'Concrete',
-    description: 'Physical manipulatives and real objects'
+    name: 'Hands-On Problems',
+    description: 'Problems using real objects, manipulatives, and physical materials'
   },
   {
     id: 'pictorial',
-    name: 'Pictorial',
-    description: 'Visual representations and diagrams'
+    name: 'Visual Problems',
+    description: 'Problems with pictures, diagrams, charts, and visual aids'
   },
   {
     id: 'abstract',
-    name: 'Abstract',
-    description: 'Numbers and symbolic notation'
+    name: 'Numbers Only',
+    description: 'Pure math problems with numbers, symbols, and equations'
   },
   {
     id: 'mixed',
-    name: 'Mixed',
-    description: 'Combination of concrete, pictorial, and abstract'
+    name: 'Mixed Approach',
+    description: 'Combination of hands-on, visual, and number-based problems'
+  },
+  {
+    id: 'word_problems',
+    name: 'Word Problems Only',
+    description: 'Story-based problems with real-world contexts and scenarios'
   }
 ];
 
@@ -246,15 +291,19 @@ export function getStrategiesForGrade(gradeLevel: number): StrategyDefinition[] 
 export function getRecommendedTools(topicId: string): MathematicalTool[] {
   const recommendations: Record<string, MathematicalTool[]> = {
     // Number & Operations
-    'counting': ['ten_frames', 'hundreds_charts'],
-    'place-value-basic': ['base_ten_blocks', 'hundreds_charts'],
-    'addition-basic': ['ten_frames', 'number_lines', 'bar_models'],
-    'subtraction-basic': ['ten_frames', 'number_lines', 'bar_models'],
-    'multiplication-basic': ['arrays', 'area_models', 'bar_models'],
+    'counting': ['ten_frames', 'hundreds_charts', 'counters'],
+    'skip-counting': ['hundreds_charts', 'counters', 'number_lines'],
+    'place-value-basic': ['base_ten_blocks', 'hundreds_charts', 'decomposition_method'],
+    'addition-basic': ['ten_frames', 'number_lines', 'bar_models', 'counters'],
+    'subtraction-basic': ['ten_frames', 'number_lines', 'bar_models', 'counters'],
+    'addition-regrouping': ['base_ten_blocks', 'decomposition_method'],
+    'subtraction-regrouping': ['base_ten_blocks', 'decomposition_method'],
+    'multiplication-basic': ['arrays', 'area_models', 'bar_models', 'partial_products', 'decomposition_method'],
+    'multiplication-multi-digit': ['partial_products', 'lattice_multiplication', 'area_models'],
     'division-basic': ['arrays', 'area_models', 'bar_models'],
     
     // Fractions
-    'fractions-basic': ['fraction_bars', 'area_models'],
+    'fractions-basic': ['fraction_bars', 'area_models', 'pattern_blocks'],
     'fractions-operations': ['fraction_bars', 'area_models', 'bar_models'],
     
     // Measurement & Data
@@ -263,9 +312,13 @@ export function getRecommendedTools(topicId: string): MathematicalTool[] {
     'data-graphs': ['bar_models'],
     
     // Geometry
-    'shapes-2d': ['geoboards'],
+    'shapes-2d': ['geoboards', 'pattern_blocks'],
     'area-perimeter': ['geoboards', 'arrays'],
-    'coordinate-plane': ['geoboards']
+    'coordinate-plane': ['geoboards'],
+    'symmetry': ['pattern_blocks', 'geoboards'],
+    
+    // Patterns & Algebra
+    'patterns-sequences': ['pattern_blocks', 'counters', 'hundreds_charts']
   };
   
   return recommendations[topicId] || [];

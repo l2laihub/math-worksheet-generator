@@ -73,6 +73,12 @@
       "unicode": "1F41F",
       "path": "/assets/svg/animals/fish.svg",
       "name": "Fish"
+    },
+    {
+      "id": "bird",
+      "unicode": "1F426",
+      "path": "/assets/svg/animals/bird.svg",
+      "name": "Bird"
     }
   ],
   "nature": [

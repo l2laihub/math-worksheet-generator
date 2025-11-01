@@ -128,7 +128,7 @@ function checkToolsCompliance(worksheet: WorksheetOutput, selectedTools: Mathema
   const requiredCount = Math.ceil(worksheet.problems.length * 0.6); // 60% requirement
   let foundCount = 0;
 
-  const toolKeywords = {
+  const toolKeywords: Record<MathematicalTool, string[]> = {
     base_ten_blocks: ['base ten', 'place value blocks', 'hundreds blocks', 'tens blocks', 'ones blocks'],
     ten_frames: ['ten frame', 'frame', 'dots in frame'],
     fraction_bars: ['fraction bar', 'fraction strip', 'part of the bar'],
@@ -139,6 +139,11 @@ function checkToolsCompliance(worksheet: WorksheetOutput, selectedTools: Mathema
     hundreds_charts: ['hundreds chart', '100 chart', 'number chart'],
     geoboards: ['geoboard', 'dot paper', 'grid dots'],
     money_manipulatives: ['coins', 'dollars', 'cents', 'pennies', 'quarters'],
+    partial_products: ['partial product', 'break apart', 'multiply each part'],
+    lattice_multiplication: ['lattice', 'grid multiplication', 'diagonal method'],
+    decomposition_method: ['decompose', 'break down', 'place value parts'],
+    counters: ['counter', 'counting objects', 'circles to count'],
+    pattern_blocks: ['pattern block', 'hexagon', 'trapezoid', 'rhombus'],
   };
 
   worksheet.problems.forEach(problem => {

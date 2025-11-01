@@ -170,22 +170,22 @@ export const TOOL_EXAMPLES: ToolExample[] = [
     steps: [
       {
         number: 1,
-        description: 'Break apart the numbers: 23 = 20 + 3, 15 = 10 + 5',
-        visualization: 'Split into parts we can work with'
+        description: 'Break apart the numbers into tens and ones',
+        visualization: '23 = 20 + 3, and 15 = 10 + 5'
       },
       {
         number: 2,
-        description: 'Draw a rectangle and divide it into 4 parts',
-        visualization: 'Rectangle: 20×10 | 20×5 | 3×10 | 3×5'
+        description: 'Draw a rectangle and divide it into 4 sections',
+        visualization: 'Make a grid:\n\n    |  10  |   5  |\n----|------|------|\n 20 | 200  |  100 |\n----|------|------|\n  3 |  30  |   15 |'
       },
       {
         number: 3,
-        description: 'Calculate each part',
-        visualization: '200 + 100 + 30 + 15'
+        description: 'Calculate the area of each section',
+        visualization: '20×10=200, 20×5=100, 3×10=30, 3×5=15'
       },
       {
         number: 4,
-        description: 'Add all parts together',
+        description: 'Add all sections together to find the total area',
         visualization: '200 + 100 + 30 + 15 = 345'
       }
     ],
@@ -228,12 +228,12 @@ export const TOOL_EXAMPLES: ToolExample[] = [
       {
         number: 1,
         description: 'Start at 7 on the number line',
-        visualization: '←─┴─┴─┴─┴─┴─┴─● ─┴─┴─┴─┴─→\n   0 1 2 3 4 5 6 7 8 9 10 11 12'
+        visualization: '0--1--2--3--4--5--6--7--8--9--10--11--12\n                        ^start here'
       },
       {
         number: 2,
         description: 'Jump forward 5 spaces',
-        visualization: '←─┴─┴─┴─┴─┴─┴─●→→→→→● ─┴─→\n   0 1 2 3 4 5 6 7 8 9 10 11 12'
+        visualization: '0--1--2--3--4--5--6--7>>8>>9>>10>>11>>12\n                        ^jump 5 spaces  ^'
       },
       {
         number: 3,
@@ -244,6 +244,31 @@ export const TOOL_EXAMPLES: ToolExample[] = [
     solution: '7 + 5 = 12',
     gradeLevel: [1, 2, 3, 4, 5, 6],
     topic: ['addition-basic', 'counting']
+  },
+  {
+    toolId: 'number_lines',
+    toolName: 'Number Lines',
+    problem: 'What is 2.3 + 1.4?',
+    steps: [
+      {
+        number: 1,
+        description: 'Start at 2.3 on the decimal number line',
+        visualization: '0-----1-----2----2.3-----3-----4-----5\n                    ^start here'
+      },
+      {
+        number: 2,
+        description: 'Jump forward 1.4 spaces (1 whole + 4 tenths)',
+        visualization: '0-----1-----2----2.3>>>>>3.7---4-----5\n                    ^jump 1.4    ^land here'
+      },
+      {
+        number: 3,
+        description: 'See where you land',
+        visualization: 'You land on 3.7'
+      }
+    ],
+    solution: '2.3 + 1.4 = 3.7',
+    gradeLevel: [4, 5, 6],
+    topic: ['decimals', 'addition-basic']
   },
 
   // Fraction Bars Examples
@@ -287,12 +312,12 @@ export const TOOL_EXAMPLES: ToolExample[] = [
       {
         number: 1,
         description: 'Draw a bar to show all 24 stickers',
-        visualization: '[────────────────────────] 24 stickers'
+        visualization: 'Total bar: [========================] 24 stickers'
       },
       {
         number: 2,
         description: 'Mark the part she gives away (8 stickers)',
-        visualization: '[████████|───────────────] \n  8 gave    ? left'
+        visualization: 'Split bar: [########|----------------] \n           8 gave away  16 left'
       },
       {
         number: 3,
@@ -303,6 +328,31 @@ export const TOOL_EXAMPLES: ToolExample[] = [
     solution: 'Sarah has 16 stickers left',
     gradeLevel: [2, 3, 4, 5, 6],
     topic: ['subtraction-basic', 'word-problems-multistep']
+  },
+  {
+    toolId: 'bar_models',
+    toolName: 'Bar Models (Tape Diagrams)',
+    problem: 'A recipe calls for 2.5 cups of flour. Maria has already added 1.8 cups. How much more flour does she need?',
+    steps: [
+      {
+        number: 1,
+        description: 'Draw a bar to show the total flour needed (2.5 cups)',
+        visualization: 'Total bar: [=========================] 2.5 cups total'
+      },
+      {
+        number: 2,
+        description: 'Mark the part already added (1.8 cups)',
+        visualization: 'Split bar: [##################|-------] \n           1.8 cups used     0.7 needed'
+      },
+      {
+        number: 3,
+        description: 'Find the remaining part',
+        visualization: '2.5 - 1.8 = 0.7 cups more needed'
+      }
+    ],
+    solution: 'Maria needs 0.7 more cups of flour',
+    gradeLevel: [4, 5, 6],
+    topic: ['decimals', 'subtraction-basic', 'word-problems-multistep']
   },
 
   // Hundreds Charts Examples
@@ -389,6 +439,146 @@ export const TOOL_EXAMPLES: ToolExample[] = [
     solution: 'Area = 6 square units',
     gradeLevel: [3, 4, 5, 6],
     topic: ['area-perimeter', 'shapes-2d']
+  },
+  
+  // Partial Products Examples
+  {
+    toolId: 'partial_products',
+    toolName: 'Partial Products',
+    problem: 'What is 23 × 15?',
+    steps: [
+      {
+        number: 1,
+        description: 'Break down each number by place value',
+        visualization: '23 = 20 + 3, and 15 = 10 + 5'
+      },
+      {
+        number: 2,
+        description: 'Multiply each part (create all combinations)',
+        visualization: '20 × 10 = 200\n20 × 5 = 100\n3 × 10 = 30\n3 × 5 = 15'
+      },
+      {
+        number: 3,
+        description: 'Add all the partial products',
+        visualization: '200 + 100 + 30 + 15 = 345'
+      },
+      {
+        number: 4,
+        description: 'Use the Box Method to organize your work:',
+        visualization: 'Draw boxes for each partial product:\n\n[200] = 20 × 10\n[100] = 20 × 5  \n[30]  = 3 × 10\n[15]  = 3 × 5\n________________\n[345] = 200 + 100 + 30 + 15'
+      }
+    ],
+    solution: '23 × 15 = 345',
+    gradeLevel: [3, 4, 5, 6],
+    topic: ['multiplication-multi-digit', 'multiplication-basic']
+  },
+  
+  // Lattice Multiplication Example
+  {
+    toolId: 'lattice_multiplication',
+    toolName: 'Lattice Multiplication',
+    problem: 'What is 34 × 26?',
+    steps: [
+      {
+        number: 1,
+        description: 'Create a 2×2 grid and write the digits along the top and right',
+        visualization: 'Grid with 3, 4 on top and 2, 6 on right'
+      },
+      {
+        number: 2,
+        description: 'Multiply each pair and write in the diagonal boxes',
+        visualization: '3×2=06, 3×6=18, 4×2=08, 4×6=24'
+      },
+      {
+        number: 3,
+        description: 'Add along the diagonals to get the answer',
+        visualization: 'Diagonal sums: 0, 6+1+0, 8+8+2, 4 = 0884 = 884'
+      }
+    ],
+    solution: '34 × 26 = 884',
+    gradeLevel: [4, 5, 6],
+    topic: ['multiplication-multi-digit']
+  },
+  
+  // Decomposition Method Example
+  {
+    toolId: 'decomposition_method',
+    toolName: 'Decomposition Method',
+    problem: 'What is 345 + 178?',
+    steps: [
+      {
+        number: 1,
+        description: 'Break down both numbers by place value',
+        visualization: '345 = 300 + 40 + 5\n178 = 100 + 70 + 8'
+      },
+      {
+        number: 2,
+        description: 'Add by place value',
+        visualization: 'Hundreds: 300 + 100 = 400\nTens: 40 + 70 = 110\nOnes: 5 + 8 = 13'
+      },
+      {
+        number: 3,
+        description: 'Combine all parts',
+        visualization: '400 + 110 + 13 = 523'
+      }
+    ],
+    solution: '345 + 178 = 523',
+    gradeLevel: [2, 3, 4, 5],
+    topic: ['addition-regrouping', 'place-value-basic']
+  },
+  
+  // Counters Example
+  {
+    toolId: 'counters',
+    toolName: 'Counters',
+    problem: 'Skip count by 3s to 15',
+    steps: [
+      {
+        number: 1,
+        description: 'Make groups of 3 counters',
+        visualization: 'Group 1: ⭕⭕⭕'
+      },
+      {
+        number: 2,
+        description: 'Keep adding groups of 3',
+        visualization: 'Groups: ⭕⭕⭕ | ⭕⭕⭕ | ⭕⭕⭕ | ⭕⭕⭕ | ⭕⭕⭕'
+      },
+      {
+        number: 3,
+        description: 'Count by 3s: 3, 6, 9, 12, 15',
+        visualization: '5 groups of 3 = 15 counters total'
+      }
+    ],
+    solution: '3, 6, 9, 12, 15',
+    gradeLevel: [1, 2, 3],
+    topic: ['skip-counting', 'multiplication-basic']
+  },
+  
+  // Pattern Blocks Example
+  {
+    toolId: 'pattern_blocks',
+    toolName: 'Pattern Blocks',
+    problem: 'Show that 1/2 + 1/2 = 1 whole',
+    steps: [
+      {
+        number: 1,
+        description: 'Use two trapezoid blocks (red)',
+        visualization: 'Two red trapezoids side by side'
+      },
+      {
+        number: 2,
+        description: 'Compare to one hexagon (yellow)',
+        visualization: 'The two trapezoids together equal one hexagon'
+      },
+      {
+        number: 3,
+        description: 'Each trapezoid is 1/2 of the hexagon',
+        visualization: '1/2 + 1/2 = 1 whole hexagon'
+      }
+    ],
+    solution: '1/2 + 1/2 = 1',
+    gradeLevel: [2, 3, 4, 5],
+    topic: ['fractions-basic', 'shapes-2d']
   }
 ];
 
